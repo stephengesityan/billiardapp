@@ -62,11 +62,14 @@
                 <template x-if="modalType === 'login'">
                     <div>
                         <h2 class="text-xl font-semibold mb-4">Masuk</h2>
-                        <form class="space-y-4">
-                            <input type="email" placeholder="Email" class="w-full border px-4 py-2 rounded">
-                            <input type="password" placeholder="Password" class="w-full border px-4 py-2 rounded">
+                        <form method="POST" action="{{ route('login') }}" class="space-y-4">
+                            @csrf
+                            <input type="email" name="email" placeholder="Email" class="w-full border px-4 py-2 rounded"
+                                required>
+                            <input type="password" name="password" placeholder="Password"
+                                class="w-full border px-4 py-2 rounded" required>
                             <button type="submit"
-                                class="w-full bg-primary hover:bg-primary text-white py-2 rounded">Masuk</button>
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Masuk</button>
                         </form>
                         <p class="text-sm mt-4 text-center">
                             Belum punya akun?
@@ -78,12 +81,18 @@
                 <template x-if="modalType === 'register'">
                     <div>
                         <h2 class="text-xl font-semibold mb-4">Daftar</h2>
-                        <form class="space-y-4">
-                            <input type="text" placeholder="Nama Lengkap" class="w-full border px-4 py-2 rounded">
-                            <input type="email" placeholder="Email" class="w-full border px-4 py-2 rounded">
-                            <input type="password" placeholder="Password" class="w-full border px-4 py-2 rounded">
+                        <form method="POST" action="{{ route('register') }}" class="space-y-4">
+                            @csrf
+                            <input type="text" name="name" placeholder="Nama Lengkap"
+                                class="w-full border px-4 py-2 rounded" required>
+                            <input type="email" name="email" placeholder="Email" class="w-full border px-4 py-2 rounded"
+                                required>
+                            <input type="password" name="password" placeholder="Password"
+                                class="w-full border px-4 py-2 rounded" required>
+                            <input type="password" name="password_confirmation" placeholder="Konfirmasi Password"
+                                class="w-full border px-4 py-2 rounded" required>
                             <button type="submit"
-                                class="w-full bg-primary hover:bg-primary text-white py-2 rounded">Daftar</button>
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Daftar</button>
                         </form>
                         <p class="text-sm mt-4 text-center">
                             Sudah punya akun?

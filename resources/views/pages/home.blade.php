@@ -13,6 +13,7 @@
                     Venue</a>
             </div>
         </div>
+
         <div class="flex flex-col md:flex-row lg:justify-center">
             <div class="mx-4 lg:mx-0 mb-5 flex items-center border border-gray-300 md:border-0 rounded-lg">
                 <span class="text-gray-500 px-3">
