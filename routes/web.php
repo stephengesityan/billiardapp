@@ -5,7 +5,6 @@ use App\Http\Controllers\pages\VenueController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
+Auth::routes();
 Route::get('/', [HomeController::class, "index"])->name('index');
 Route::get('/venue/{venueName}', [VenueController::class, "venue"])->name('venue');
-
-Auth::routes();

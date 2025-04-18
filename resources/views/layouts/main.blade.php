@@ -37,27 +37,51 @@
 
                 <!-- Desktop buttons -->
                 <div class="hidden lg:flex items-center space-x-4">
-                    <button @click="showModal = true; modalType = 'login'"
-                        class="text-sm font-medium text-gray-700 hover:text-primary transition">Masuk</button>
-                    <button @click="showModal = true; modalType = 'register'"
-                        class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded text-sm font-medium transition">Daftar</button>
-                </div>
-            </div>
+                    @auth
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open"
+                                class="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-primary focus:outline-none">
+                                <span>{{ Auth::user()->name }}</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
 
-            <!-- Mobile menu -->
-            <div x-show="isMobileMenuOpen" @click.away="isMobileMenuOpen = false"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 transform -translate-y-4"
-                x-transition:enter-end="opacity-100 transform translate-y-0"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100 transform translate-y-0"
-                x-transition:leave-end="opacity-0 transform -translate-y-4"
-                class="absolute top-full left-0 w-full bg-white shadow-lg mt-2 px-6 py-4 space-y-3 lg:hidden z-50 rounded-b-xl">
-                <button @click="showModal = true; modalType = 'login'"
-                    class="block w-full text-left text-sm font-medium text-gray-700 hover:text-primary transition">Masuk</button>
-                <button @click="showModal = true; modalType = 'register'"
-                    class="block w-full text-left bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded text-sm font-medium transition">Daftar</button>
-            </div>
+                            <div x-show="open" @click.away="open = false" x-transition
+                                class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg py-2 z-50">
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <button @click="showModal = true; modalType = 'login'"
+                            class="text-sm font-medium text-gray-700 hover:text-primary transition">Masuk</button>
+                        <button @click="showModal = true; modalType = 'register'"
+                            class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded text-sm font-medium transition">Daftar</button>
+                    @endauth
+                </div>
+
+                <!-- Mobile menu -->
+                <div x-show="isMobileMenuOpen" ...>
+                    @auth
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit"
+                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                Logout
+                            </button>
+                        </form>
+                    @else
+                        <button @click="showModal = true; modalType = 'login'" ...>Masuk</button>
+                        <button @click="showModal = true; modalType = 'register'" ...>Daftar</button>
+                    @endauth
+                </div>
         </nav>
 
 
@@ -124,12 +148,12 @@
 
 
     <main class="pt-20">
-        @yield('content')
         @if(Auth::check())
             <p>Halo, {{ Auth::user()->name }}</p>
         @else
             <p>Kamu belum login</p>
         @endif
+        @yield('content')
     </main>
 
     <footer class="bg-white text-gray-400 relative w-full pt-20">
