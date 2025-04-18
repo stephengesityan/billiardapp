@@ -21,7 +21,7 @@
 
 <body class="font-poppins">
     <header class="fixed top-0 w-full bg-white shadow-sm z-50" x-data="{ showModal: false, modalType: '' }">
-        <nav class="relative py-4 px-4 lg:px-44 flex items-center justify-between">
+        <nav x-data="{ isMobileMenuOpen: false }" class="relative py-4 px-4 lg:px-44 flex items-center justify-between">
             <a href="https://ayo.co.id">
                 <img src="{{ asset('images/ayo.png') }}" alt="Ayo Logo" class="w-24">
             </a>
@@ -30,19 +30,37 @@
                 <a href="#"><i class="fa fa-shopping-cart text-xl text-gray-700"></i></a>
 
                 <!-- Mobile hamburger -->
-                <button class="block lg:hidden border border-l-gray-300 border-t-0 border-r-0 border-b-0 pl-4">
-                    <i class="fas fa-bars text-gray-700"></i>
+                <button @click="isMobileMenuOpen = !isMobileMenuOpen"
+                    class="block lg:hidden border-l pl-4 border-gray-300 focus:outline-none">
+                    <i class="fas fa-bars text-2xl text-gray-700"></i>
                 </button>
 
                 <!-- Desktop buttons -->
                 <div class="hidden lg:flex items-center space-x-4">
                     <button @click="showModal = true; modalType = 'login'"
-                        class="text-sm font-medium text-gray-700 hover:text-primary">Masuk</button>
+                        class="text-sm font-medium text-gray-700 hover:text-primary transition">Masuk</button>
                     <button @click="showModal = true; modalType = 'register'"
-                        class="bg-primary hover:bg-primary text-white px-4 py-2 rounded text-sm font-medium transition">Daftar</button>
+                        class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded text-sm font-medium transition">Daftar</button>
                 </div>
             </div>
+
+            <!-- Mobile menu -->
+            <div x-show="isMobileMenuOpen" @click.away="isMobileMenuOpen = false"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 transform -translate-y-4"
+                x-transition:enter-end="opacity-100 transform translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 transform translate-y-0"
+                x-transition:leave-end="opacity-0 transform -translate-y-4"
+                class="absolute top-full left-0 w-full bg-white shadow-lg mt-2 px-6 py-4 space-y-3 lg:hidden z-50 rounded-b-xl">
+                <button @click="showModal = true; modalType = 'login'"
+                    class="block w-full text-left text-sm font-medium text-gray-700 hover:text-primary transition">Masuk</button>
+                <button @click="showModal = true; modalType = 'register'"
+                    class="block w-full text-left bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded text-sm font-medium transition">Daftar</button>
+            </div>
         </nav>
+
+
 
         <!-- Modal -->
         <div x-show="showModal" x-cloak x-transition:enter="transition ease-out duration-300"
