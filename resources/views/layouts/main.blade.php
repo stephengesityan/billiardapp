@@ -107,6 +107,11 @@
 
     <main class="pt-20">
         @yield('content')
+        @if(Auth::check())
+            <p>Halo, {{ Auth::user()->name }}</p>
+        @else
+            <p>Kamu belum login</p>
+        @endif
     </main>
 
     <footer class="bg-white text-gray-400 relative w-full pt-20">
