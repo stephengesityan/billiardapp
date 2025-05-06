@@ -27,7 +27,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/venue/capitano';
+    protected $redirectTo = '/home';
 
     /**
      * Create a new controller instance.
@@ -47,6 +47,17 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/venue/das'); 
+        session()->flash('error', 'Berhasil logout!');
+        return redirect('/home'); 
     }
+
+    protected function authenticated(Request $request, $user)
+    {
+        session()->flash('success', 'Login berhasil!');
+        if ($user->role === 'admin') {
+            return redirect('/admin');
+        }
+        return redirect()->intended($this->redirectTo);
+    }
+
 }

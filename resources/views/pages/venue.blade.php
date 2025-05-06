@@ -26,7 +26,7 @@
                 </div>
             </div>
             @foreach ($venue['tables'] as $table)
-                <div x-data="{ open: false }" class="border rounded-lg shadow-md p-4 mb-4">
+                <div x-data="booking(@json(auth()->check()))" class="border rounded-lg shadow-md p-4 mb-4">
                     <div class="flex items-center justify-between cursor-pointer" @click="open = !open">
                         <div class="flex items-center">
                             <img src="{{ asset('images/meja.jpg') }}" class="w-24">
@@ -47,37 +47,130 @@
 
                     <div x-show="open" x-collapse class="mt-4 p-4 border-t bg-gray-100 rounded-lg">
                         <h4 class="font-semibold mb-2">Pilih Jam Booking:</h4>
-                        <select class="w-full border p-2 rounded-lg">
-                            <option>10:00</option>
-                            <option>11:00</option>
-                            <option>12:00</option>
-                            <option>13:00</option>
+                        <select class="w-full border p-2 rounded-lg" x-model="selectedTime">
+                            <option value="">-- Pilih Jam --</option>
+                            <template x-for="hour in getHoursInRange(9, 22)" :key="hour">
+                                <option :value="hour + ':00'" x-text="hour + ':00'"></option>
+                            </template>
                         </select>
-                        <button class="mt-3 px-4 py-2 bg-green-500 text-white rounded-lg w-full">Confirm Booking</button>
+
+                        <h4 class="font-semibold mb-2 mt-4">Pilih Durasi Main:</h4>
+                        <select class="w-full border p-2 rounded-lg" x-model="selectedDuration">
+                            <option value="">-- Pilih Durasi --</option>
+                            <option value="1">1 Jam</option>
+                            <option value="2">2 Jam</option>
+                            <option value="3">3 Jam</option>
+                        </select>
+
+                        <button class="mt-3 px-4 py-2 bg-green-500 text-white rounded-lg w-full" :disabled="!selectedTime || !selectedDuration || isLoading"
+                            @click="submitBooking('{{ $table['id'] }}', '{{ addslashes($table['name']) }}')">
+                            <template x-if="isLoading">
+                                <span>Loading...</span>
+                            </template>
+                            <template x-if="!isLoading">
+                                <span>Confirm Booking</span>
+                            </template>
+                        </button>
                     </div>
                 </div>
             @endforeach
-
         </div>
     </div>
-    {{-- {{ dd($venue['location']) }} --}}
 
     <script>
         function updateClock() {
             const now = new Date();
-
-            // Konversi ke WIB (GMT+7)
             const options = { timeZone: 'Asia/Jakarta', hour12: false };
             const timeFormatter = new Intl.DateTimeFormat('id-ID', { ...options, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
             document.getElementById('realTimeClock').textContent = timeFormatter.format(now);
         }
-
-        // Update setiap detik
         setInterval(updateClock, 1000);
-        updateClock(); // Panggil sekali untuk langsung tampil
+        updateClock();
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('booking', (isLoggedIn) => ({
+                isLoggedIn,
+                open: false,
+                selectedTime: '',
+                selectedDuration: '',
+                isLoading: false,
+
+                getHoursInRange(startHour, endHour) {
+                    let hours = [];
+                    for (let i = startHour; i <= endHour; i++) {
+                        hours.push(i);
+                    }
+                    return hours;
+                },
+
+                submitBooking(tableId, tableName) {
+                    if (!this.isLoggedIn) {
+                        alert('Silahkan login terlebih dahulu untuk melakukan booking.');
+                    }
+                    const selectedTime = this.selectedTime;
+                    const selectedDuration = this.selectedDuration;
+
+                    if (!selectedTime || !selectedDuration) {
+                        alert('Please select both time and duration');
+                        return;
+                    }
+
+                    // Validasi jam
+                    const now = new Date();
+                    const selectedDateTime = new Date();
+                    const [selectedHour, selectedMinute] = selectedTime.split(':').map(Number);
+                    selectedDateTime.setHours(selectedHour, selectedMinute, 0, 0);
+
+                    if (selectedDateTime <= now) {
+                        alert('Jam yang dipilih sudah lewat. Silakan pilih jam yang masih tersedia.');
+                        return;
+                    }
+
+                    this.isLoading = true;
+
+                    // Hitung end time
+                    const bookingStart = new Date();
+                    bookingStart.setHours(selectedHour, selectedMinute, 0, 0);
+                    const bookingEnd = new Date(bookingStart);
+                    bookingEnd.setHours(bookingEnd.getHours() + parseInt(selectedDuration));
+
+                    const endTimeFormatted = ('0' + bookingEnd.getHours()).slice(-2) + ':' + ('0' + bookingEnd.getMinutes()).slice(-2);
+                    const today = new Date().toISOString().split('T')[0];
+                    const start_time = `${today} ${selectedTime}`;
+                    const end_time = `${today} ${endTimeFormatted}`;
+
+                    // Kirim ke backend
+                    fetch('/booking', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            table_id: tableId,
+                            start_time: start_time,
+                            end_time: end_time,
+                        }),
+                    })
+                        .then(res => {
+                            if (res.status === 409) throw new Error('Meja sudah dibooking.');
+                            return res.json();
+                        })
+                        .then(data => {
+                            alert(`Booking ${tableName} berhasil! Meja akan diblokir dari ${selectedTime} hingga ${endTimeFormatted}`);
+                            location.reload(); // Reload untuk update status meja
+                        })
+                        .catch(err => {
+                            alert('Gagal booking: ' + err.message);
+                        })
+                        .finally(() => {
+                            this.isLoading = false;
+                        });
+                }
+            }))
+        })
     </script>
 
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 @endsection

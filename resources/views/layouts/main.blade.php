@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Document</title>
     @vite('resources/css/app.css')
     {{-- Font | Google Fonts --}}
@@ -148,11 +149,38 @@
 
 
     <main class="pt-20">
-        @if(Auth::check())
-            <p>Halo, {{ Auth::user()->name }}</p>
-        @else
-            <p>Kamu belum login</p>
+        @if (session('success') || session('error'))
+            <div id="floating-alert" style="
+                    position: fixed;
+                    top: 30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
+                    color: {{ session('success') ? '#0f5132' : '#842029' }};
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+                    z-index: 9999;
+                    max-width: 300px;
+                    text-align: center;
+                ">
+                {{ session('success') ?? session('error') }}
+            </div>
+
+            <script>
+                setTimeout(() => {
+                    const alert = document.getElementById('floating-alert');
+                    if (alert) {
+                        alert.style.transition = 'opacity 0.5s ease';
+                        alert.style.opacity = '0';
+                        setTimeout(() => alert.remove(), 500);
+                    }
+                }, 3000);
+            </script>
         @endif
+
         @yield('content')
     </main>
 
