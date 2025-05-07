@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 Auth::routes();
-Route::get('/home', [HomeController::class, "index"])->name('index');
+Route::get('/', [HomeController::class, "index"])->name('index');
 Route::get('/venue/{venueName}', [VenueController::class, "venue"])->name('venue');
 Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+Route::get('/booking/schedules', [BookingController::class, 'getBookedSchedules'])->name('booking.schedules');
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('/bookings', [BookingsController::class, 'index'])->name('admin.bookings.index');

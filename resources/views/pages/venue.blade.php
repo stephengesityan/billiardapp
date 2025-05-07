@@ -26,8 +26,8 @@
                 </div>
             </div>
             @foreach ($venue['tables'] as $table)
-                <div x-data="booking(@json(auth()->check()))" class="border rounded-lg shadow-md p-4 mb-4">
-                    <div class="flex items-center justify-between cursor-pointer" @click="open = !open">
+                <div x-data="booking(@json(auth()->check()), '{{ $table['id'] }}')" class="border rounded-lg shadow-md p-4 mb-4">
+                    <div class="flex items-center justify-between cursor-pointer" @click="open = !open; if(open) checkBookedSchedules()">
                         <div class="flex items-center">
                             <img src="{{ asset('images/meja.jpg') }}" class="w-24">
                             <div class="ml-4">
@@ -50,7 +50,10 @@
                         <select class="w-full border p-2 rounded-lg" x-model="selectedTime">
                             <option value="">-- Pilih Jam --</option>
                             <template x-for="hour in getHoursInRange(9, 22)" :key="hour">
-                                <option :value="hour + ':00'" x-text="hour + ':00'"></option>
+                                <option :value="hour + ':00'" 
+                                        :disabled="isTimeBooked(hour + ':00')"
+                                        x-text="hour + ':00' + (isTimeBooked(hour + ':00') ? ' (Booked)' : '')">
+                                </option>
                             </template>
                         </select>
 
@@ -88,19 +91,38 @@
         updateClock();
 
         document.addEventListener('alpine:init', () => {
-            Alpine.data('booking', (isLoggedIn) => ({
+            Alpine.data('booking', (isLoggedIn, tableId) => ({
                 isLoggedIn,
+                tableId,
                 open: false,
                 selectedTime: '',
                 selectedDuration: '',
                 isLoading: false,
+                bookedSchedules: [],
 
                 getHoursInRange(startHour, endHour) {
                     let hours = [];
                     for (let i = startHour; i <= endHour; i++) {
-                        hours.push(i);
+                        hours.push(i.toString().padStart(2, '0'));
                     }
                     return hours;
+                },
+
+                isTimeBooked(time) {
+                    const timeFormatted = time.padStart(5, '0');
+                    return this.bookedSchedules.some(schedule => {
+                        return timeFormatted >= schedule.start && timeFormatted < schedule.end;
+                    });
+                },
+
+                async checkBookedSchedules() {
+                    const today = new Date().toISOString().split('T')[0];
+                    try {
+                        const response = await fetch(`/booking/schedules?table_id=${this.tableId}&date=${today}`);
+                        this.bookedSchedules = await response.json();
+                    } catch (error) {
+                        console.error('Error checking booked schedules:', error);
+                    }
                 },
 
                 submitBooking(tableId, tableName) {

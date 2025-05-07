@@ -22,14 +22,13 @@ class BookingController extends Controller
         $conflict = Booking::where('table_id', $request->table_id)
                 ->where(function($query) use ($request) {
                     $query->whereBetween('start_time', [$request->start_time, $request->end_time])
-                    ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
                     ->orWhere(function($query) use ($request) {
-                    $query->where('start_time', '<', $request->start_time)
-                    ->where('end_time', '>', $request->end_time);
-                });
-            })
-            ->where('status', '!=', 'cancelled') // skip booking yang dibatalkan
-            ->exists();
+                        $query->where('start_time', '<', $request->start_time)
+                        ->where('end_time', '>', $request->start_time);
+                    });
+                })
+                ->where('status', '!=', 'cancelled') // skip booking yang dibatalkan
+                ->exists();
 
         if ($conflict) {
             return response()->json(['message' => 'Meja sudah dibooking di jam tersebut'], 409);
@@ -44,5 +43,26 @@ class BookingController extends Controller
         ]);
 
         return response()->json(['message' => 'Booking berhasil']);
+    }
+
+    public function getBookedSchedules(Request $request) {
+        $request->validate([
+            'table_id' => 'required|exists:tables,id',
+            'date' => 'required|date',
+        ]);
+
+        $bookings = Booking::where('table_id', $request->table_id)
+            ->whereDate('start_time', $request->date)
+            ->where('status', '!=', 'cancelled')
+            ->select('start_time', 'end_time')
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    'start' => Carbon::parse($booking->start_time)->format('H:i'),
+                    'end' => Carbon::parse($booking->end_time)->format('H:i')
+                ];
+            });
+
+        return response()->json($bookings);
     }
 }

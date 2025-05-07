@@ -27,7 +27,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -48,7 +48,7 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         session()->flash('error', 'Berhasil logout!');
-        return redirect('/home'); 
+        return redirect('/'); 
     }
 
     protected function authenticated(Request $request, $user)
