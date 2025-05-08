@@ -16,7 +16,7 @@ class VenueSeeder extends Seeder
                 'name' => 'Capitano Billiard',
                 'location' => 'Genteng',
                 'address' => 'Jl. Hasanudin No.II, Dusun Krajan, Genteng Wetan, Kec. Genteng, Kabupaten Banyuwangi',
-                'price' => 30000,
+                'price' => 100000,
                 'image' => 'images/billiard2.jpg',
                 'tables' => [
                     ['name' => 'Table 1', 'brand' => 'Cosmic', 'status' => 'Available'],
@@ -31,7 +31,7 @@ class VenueSeeder extends Seeder
                 'name' => 'Osing Billiard Center',
                 'location' => 'Lidah',
                 'address' => 'Dusun Krajan, Kalirejo, Kec. Kabat, Kabupaten Banyuwangi',
-                'price' => 25000,
+                'price' => 90000,
                 'image' => 'images/billiard3.jpg',
                 'tables' => [
                     ['name' => 'Table 1', 'brand' => 'Xingjue', 'status' => 'Booked'],
@@ -47,7 +47,7 @@ class VenueSeeder extends Seeder
                 'name' => 'DAS Game & Billiard',
                 'location' => 'Jalen',
                 'address' => 'Jl. Samiran, Jalen Parungan, Setail, Kec. Genteng, Kabupaten Banyuwangi',
-                'price' => 20000,
+                'price' => 95000,
                 'image' => 'images/billiard4.jpg',
                 'tables' => [
                     ['name' => 'Table 1', 'brand' => 'Cosmic', 'status' => 'Available'],

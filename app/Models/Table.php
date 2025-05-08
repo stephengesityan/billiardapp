@@ -9,7 +9,17 @@ class Table extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['venue_id', 'name', 'brand', 'status'];
+    protected $fillable = [
+        'name',
+        'brand',
+        'status',
+        'venue_id',
+        'price_per_hour'
+    ];
+
+    protected $casts = [
+        'price_per_hour' => 'decimal:2'
+    ];
 
     public function venue()
     {

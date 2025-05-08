@@ -14,6 +14,9 @@ Route::get('/', [HomeController::class, "index"])->name('index');
 Route::get('/venue/{venueName}', [VenueController::class, "venue"])->name('venue');
 Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 Route::get('/booking/schedules', [BookingController::class, 'getBookedSchedules'])->name('booking.schedules');
+Route::post('/booking/payment', [BookingController::class, 'processPayment'])->name('booking.payment');
+Route::get('/booking/payment/{bookingId}', [BookingController::class, 'checkPaymentStatus'])->name('booking.payment.status');
+Route::post('/payment/notification', [BookingController::class, 'handleNotification'])->name('payment.notification');
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('/bookings', [BookingsController::class, 'index'])->name('admin.bookings.index');

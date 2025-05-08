@@ -80,6 +80,8 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
     <script>
         function updateClock() {
             const now = new Date();
@@ -128,6 +130,7 @@
                 submitBooking(tableId, tableName) {
                     if (!this.isLoggedIn) {
                         alert('Silahkan login terlebih dahulu untuk melakukan booking.');
+                        return;
                     }
                     const selectedTime = this.selectedTime;
                     const selectedDuration = this.selectedDuration;
@@ -174,25 +177,45 @@
                             end_time: end_time,
                         }),
                     })
-                        .then(res => {
-                            if (res.status === 409) throw new Error('Meja sudah dibooking.');
-                            return res.json();
-                        })
-                        .then(data => {
-                            alert(`Booking ${tableName} berhasil! Meja akan diblokir dari ${selectedTime} hingga ${endTimeFormatted}`);
-                            location.reload(); // Reload untuk update status meja
-                        })
-                        .catch(err => {
-                            alert('Gagal booking: ' + err.message);
-                        })
-                        .finally(() => {
-                            this.isLoading = false;
+                    .then(res => {
+                        if (!res.ok) {
+                            return res.json().then(err => {
+                                throw new Error(err.message || 'Gagal membuat booking');
+                            });
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (!data.snap_token) {
+                            throw new Error('Snap token tidak ditemukan');
+                        }
+                        
+                        // Buka Snap Midtrans
+                        window.snap.pay(data.snap_token, {
+                            onSuccess: function(result) {
+                                alert('Pembayaran berhasil!');
+                                location.reload();
+                            },
+                            onPending: function(result) {
+                                alert('Pembayaran pending, silahkan selesaikan pembayaran');
+                            },
+                            onError: function(result) {
+                                alert('Pembayaran gagal');
+                            },
+                            onClose: function() {
+                                alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                            }
                         });
+                    })
+                    .catch(err => {
+                        console.error('Booking error:', err);
+                        alert('Gagal booking: ' + err.message);
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
+                    });
                 }
             }))
         })
     </script>
-
-
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 @endsection
