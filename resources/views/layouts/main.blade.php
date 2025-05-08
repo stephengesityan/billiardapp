@@ -39,6 +39,9 @@
                 <!-- Desktop buttons -->
                 <div class="hidden lg:flex items-center space-x-4">
                     @auth
+                        <a href="{{ route('booking.history') }}"
+                            class="text-sm font-medium text-gray-700 hover:text-primary transition">Riwayat Booking</a>
+
                         <div x-data="{ open: false }" class="relative">
                             <button @click="open = !open"
                                 class="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-primary focus:outline-none">
@@ -51,6 +54,10 @@
 
                             <div x-show="open" @click.away="open = false" x-transition
                                 class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg py-2 z-50">
+                                <a href="{{ route('booking.history') }}"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Riwayat Booking
+                                </a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit"
@@ -69,8 +76,13 @@
                 </div>
 
                 <!-- Mobile menu -->
-                <div x-show="isMobileMenuOpen" ...>
+                <div x-show="isMobileMenuOpen"
+                    class="absolute top-full left-0 right-0 bg-white shadow-md mt-1 p-4 z-50">
                     @auth
+                        <a href="{{ route('booking.history') }}"
+                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            Riwayat Booking
+                        </a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit"
@@ -79,8 +91,10 @@
                             </button>
                         </form>
                     @else
-                        <button @click="showModal = true; modalType = 'login'" ...>Masuk</button>
-                        <button @click="showModal = true; modalType = 'register'" ...>Daftar</button>
+                        <button @click="showModal = true; modalType = 'login'"
+                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Masuk</button>
+                        <button @click="showModal = true; modalType = 'register'"
+                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 mt-2">Daftar</button>
                     @endauth
                 </div>
         </nav>
@@ -151,21 +165,21 @@
     <main class="pt-20">
         @if (session('success') || session('error'))
             <div id="floating-alert" style="
-                    position: fixed;
-                    top: 30px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background-color: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
-                    color: {{ session('success') ? '#0f5132' : '#842029' }};
-                    padding: 10px 20px;
-                    border-radius: 6px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-                    z-index: 9999;
-                    max-width: 300px;
-                    text-align: center;
-                ">
+                                                    position: fixed;
+                                                    top: 30px;
+                                                    left: 50%;
+                                                    transform: translateX(-50%);
+                                                    background-color: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
+                                                    color: {{ session('success') ? '#0f5132' : '#842029' }};
+                                                    padding: 10px 20px;
+                                                    border-radius: 6px;
+                                                    font-size: 14px;
+                                                    font-weight: 500;
+                                                    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+                                                    z-index: 9999;
+                                                    max-width: 300px;
+                                                    text-align: center;
+                                                ">
                 {{ session('success') ?? session('error') }}
             </div>
 

@@ -16,6 +16,63 @@
                 <i class="fa-solid fa-map-pin text-red-800 text-3xl"></i>
             </div>
         </a>
+        @auth
+            <!-- Pending Bookings Section -->
+            <div x-data="pendingBookingsComponent" class="mt-6">
+                <template x-if="pendingBookings.length > 0">
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="font-semibold text-orange-700">
+                                <i class="fa-solid fa-clock"></i> Booking yang Belum Diselesaikan
+                            </h2>
+                            <button @click="showPendingBookings = !showPendingBookings"
+                                class="text-orange-700 hover:text-orange-900">
+                                <span x-show="!showPendingBookings">▼ Lihat</span>
+                                <span x-show="showPendingBookings">▲ Tutup</span>
+                            </button>
+                        </div>
+
+                        <div x-show="showPendingBookings" x-transition class="mt-3">
+                            <p class="text-sm text-orange-700 mb-2">Anda memiliki booking yang belum diselesaikan:</p>
+                            <template x-for="booking in pendingBookings" :key="booking . id">
+                                <div class="bg-white rounded-md p-3 mb-2 shadow-sm border border-orange-200">
+                                    <div class="flex justify-between">
+                                        <div>
+                                            <p class="font-medium" x-text="booking.table.name"></p>
+                                            <p class="text-sm text-gray-600"
+                                                x-text="formatDateTime(booking.start_time) + ' - ' + formatTime(booking.end_time)">
+                                            </p>
+                                            <p class="text-sm font-medium text-gray-800 mt-1">
+                                                <span>Rp </span>
+                                                <span x-text="formatPrice(booking.total_amount)"></span>
+                                            </p>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <button @click="resumeBooking(booking.id)"
+                                                class="bg-blue-500 text-white text-sm px-3 py-1 rounded-md hover:bg-blue-600"
+                                                :disabled="isLoadingPending">
+                                                <template x-if="isLoadingPending">
+                                                    <span>Loading...</span>
+                                                </template>
+                                                <template x-if="!isLoadingPending">
+                                                    <span>Lanjutkan</span>
+                                                </template>
+                                            </button>
+                                            <button @click="deletePendingBooking(booking.id)"
+                                                class="bg-gray-200 text-gray-700 text-sm px-3 py-1 rounded-md hover:bg-gray-300"
+                                                :disabled="isLoadingPending">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        @endauth
+
         <div class="mt-6">
             <div class="flex justify-between">
                 <div>
@@ -26,8 +83,10 @@
                 </div>
             </div>
             @foreach ($venue['tables'] as $table)
-                <div x-data="booking(@json(auth()->check()), '{{ $table['id'] }}')" class="border rounded-lg shadow-md p-4 mb-4">
-                    <div class="flex items-center justify-between cursor-pointer" @click="open = !open; if(open) checkBookedSchedules()">
+                <div x-data="booking(@json(auth()->check()), '{{ $table['id'] }}')"
+                    class="border rounded-lg shadow-md p-4 mb-4">
+                    <div class="flex items-center justify-between cursor-pointer"
+                        @click="open = !open; if(open) checkBookedSchedules()">
                         <div class="flex items-center">
                             <img src="{{ asset('images/meja.jpg') }}" class="w-24">
                             <div class="ml-4">
@@ -49,10 +108,9 @@
                         <h4 class="font-semibold mb-2">Pilih Jam Booking:</h4>
                         <select class="w-full border p-2 rounded-lg" x-model="selectedTime">
                             <option value="">-- Pilih Jam --</option>
-                            <template x-for="hour in getHoursInRange(9, 22)" :key="hour">
-                                <option :value="hour + ':00'" 
-                                        :disabled="isTimeBooked(hour + ':00')"
-                                        x-text="hour + ':00' + (isTimeBooked(hour + ':00') ? ' (Booked)' : '')">
+                            <template x-for="hour in getHoursInRange(9, 24)" :key="hour">
+                                <option :value="hour + ':00'" :disabled="isTimeBooked(hour + ':00')"
+                                    x-text="hour + ':00' + (isTimeBooked(hour + ':00') ? ' (Booked)' : '')">
                                 </option>
                             </template>
                         </select>
@@ -66,7 +124,7 @@
                         </select>
 
                         <button class="mt-3 px-4 py-2 bg-green-500 text-white rounded-lg w-full" :disabled="!selectedTime || !selectedDuration || isLoading"
-                            @click="submitBooking('{{ $table['id'] }}', '{{ addslashes($table['name']) }}')">
+                            @click="initiateBooking('{{ $table['id'] }}', '{{ addslashes($table['name']) }}')">
                             <template x-if="isLoading">
                                 <span>Loading...</span>
                             </template>
@@ -81,7 +139,8 @@
     </div>
 
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="{{ config('midtrans.client_key') }}"></script>
     <script>
         function updateClock() {
             const now = new Date();
@@ -92,7 +151,175 @@
         setInterval(updateClock, 1000);
         updateClock();
 
+        // Format functions for pending bookings
+        function formatDateTime(dateTimeStr) {
+            const date = new Date(dateTimeStr);
+            // Explicitly use Jakarta timezone for display
+            return new Intl.DateTimeFormat('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'Asia/Jakarta'
+            }).format(date);
+        }
+
+        function formatTime(timeStr) {
+            const date = new Date(timeStr);
+            // Explicitly use Jakarta timezone for display
+            return new Intl.DateTimeFormat('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'Asia/Jakarta'
+            }).format(date);
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('id-ID').format(price);
+        }
+
         document.addEventListener('alpine:init', () => {
+            // Pending bookings component
+            Alpine.data('pendingBookingsComponent', () => ({
+                pendingBookings: [],
+                showPendingBookings: false,
+                isLoadingPending: false,
+
+                init() {
+                    this.fetchPendingBookings();
+                },
+
+                fetchPendingBookings() {
+                    fetch('/booking/pending')
+                        .then(response => response.json())
+                        .then(data => {
+                            // Filter bookings untuk venue saat ini jika diperlukan
+                            const currentVenueId = {{ $venue['id'] ?? 'null' }};
+                            if (currentVenueId) {
+                                this.pendingBookings = data.filter(booking =>
+                                    booking.table && booking.table.venue_id === currentVenueId
+                                );
+                            } else {
+                                this.pendingBookings = data;
+                            }
+
+                            // Log jumlah pending bookings yang ditemukan
+                            console.log("Found", this.pendingBookings.length, "pending bookings");
+                        })
+                        .catch(error => console.error('Error fetching pending bookings:', error));
+                },
+
+                resumeBooking(bookingId) {
+                    this.isLoadingPending = true;
+                    fetch(`/booking/pending/${bookingId}/resume`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                console.log("Opening payment with snap token:", data.snap_token);
+                                // Open Snap payment
+                                window.snap.pay(data.snap_token, {
+                                    onSuccess: (result) => {
+                                        this.createBookingAfterPayment(data.order_id, result);
+                                    },
+                                    onPending: (result) => {
+                                        alert('Pembayaran pending, silahkan selesaikan pembayaran');
+                                        this.isLoadingPending = false;
+                                    },
+                                    onError: (result) => {
+                                        alert('Pembayaran gagal');
+                                        this.isLoadingPending = false;
+                                    },
+                                    onClose: () => {
+                                        alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                                        this.isLoadingPending = false;
+                                    }
+                                });
+                            } else {
+                                alert(data.message);
+                                this.isLoadingPending = false;
+                                // Refresh pending bookings list
+                                this.fetchPendingBookings();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error resuming booking:', error);
+                            alert('Gagal melanjutkan booking');
+                            this.isLoadingPending = false;
+                        });
+                },
+
+                deletePendingBooking(bookingId) {
+                    if (confirm('Apakah Anda yakin ingin menghapus booking ini?')) {
+                        this.isLoadingPending = true;
+                        fetch(`/booking/pending/${bookingId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            }
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('Booking berhasil dihapus');
+                                    this.fetchPendingBookings();
+                                } else {
+                                    alert(data.message);
+                                }
+                                this.isLoadingPending = false;
+                            })
+                            .catch(error => {
+                                console.error('Error deleting booking:', error);
+                                alert('Gagal menghapus booking');
+                                this.isLoadingPending = false;
+                            });
+                    }
+                },
+
+                createBookingAfterPayment(orderId, paymentResult) {
+                    fetch('/booking', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            order_id: orderId,
+                            transaction_id: paymentResult.transaction_id,
+                            payment_method: paymentResult.payment_type,
+                            transaction_status: paymentResult.transaction_status
+                        }),
+                    })
+                        .then(res => {
+                            if (!res.ok) {
+                                return res.json().then(err => {
+                                    throw new Error(err.message || 'Gagal menyimpan booking');
+                                });
+                            }
+                            return res.json();
+                        })
+                        .then(data => {
+                            alert('Pembayaran dan booking berhasil!');
+                            this.isLoadingPending = false;
+
+                            // Refresh pending bookings list
+                            this.fetchPendingBookings();
+
+                            // Redirect to booking history
+                            window.location.href = '/booking/history';
+                        })
+                        .catch(err => {
+                            console.error('Booking error:', err);
+                            alert('Pembayaran berhasil tetapi gagal menyimpan booking: ' + err.message);
+                            this.isLoadingPending = false;
+                        });
+                }
+            }));
+
+            // Regular booking component (existing)
             Alpine.data('booking', (isLoggedIn, tableId) => ({
                 isLoggedIn,
                 tableId,
@@ -127,7 +354,7 @@
                     }
                 },
 
-                submitBooking(tableId, tableName) {
+                initiateBooking(tableId, tableName) {
                     if (!this.isLoggedIn) {
                         alert('Silahkan login terlebih dahulu untuk melakukan booking.');
                         return;
@@ -146,10 +373,11 @@
                     const [selectedHour, selectedMinute] = selectedTime.split(':').map(Number);
                     selectedDateTime.setHours(selectedHour, selectedMinute, 0, 0);
 
-                    if (selectedDateTime <= now) {
-                        alert('Jam yang dipilih sudah lewat. Silakan pilih jam yang masih tersedia.');
-                        return;
-                    }
+                    // Uncomment this for production to prevent booking past times
+                    // if (selectedDateTime <= now) {
+                    //     alert('Jam yang dipilih sudah lewat. Silakan pilih jam yang masih tersedia.');
+                    //     return;
+                    // }
 
                     this.isLoading = true;
 
@@ -164,8 +392,8 @@
                     const start_time = `${today} ${selectedTime}`;
                     const end_time = `${today} ${endTimeFormatted}`;
 
-                    // Kirim ke backend
-                    fetch('/booking', {
+                    // Kirim ke backend untuk membuat payment intent (tanpa membuat booking dulu)
+                    fetch('/booking/payment-intent', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -177,45 +405,89 @@
                             end_time: end_time,
                         }),
                     })
-                    .then(res => {
-                        if (!res.ok) {
-                            return res.json().then(err => {
-                                throw new Error(err.message || 'Gagal membuat booking');
-                            });
-                        }
-                        return res.json();
-                    })
-                    .then(data => {
-                        if (!data.snap_token) {
-                            throw new Error('Snap token tidak ditemukan');
-                        }
-                        
-                        // Buka Snap Midtrans
-                        window.snap.pay(data.snap_token, {
-                            onSuccess: function(result) {
-                                alert('Pembayaran berhasil!');
-                                location.reload();
-                            },
-                            onPending: function(result) {
-                                alert('Pembayaran pending, silahkan selesaikan pembayaran');
-                            },
-                            onError: function(result) {
-                                alert('Pembayaran gagal');
-                            },
-                            onClose: function() {
-                                alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                        .then(res => {
+                            if (!res.ok) {
+                                return res.json().then(err => {
+                                    throw new Error(err.message || 'Gagal membuat payment intent');
+                                });
                             }
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (!data.snap_token) {
+                                throw new Error('Snap token tidak ditemukan');
+                            }
+
+                            // Buka Snap Midtrans
+                            window.snap.pay(data.snap_token, {
+                                onSuccess: (result) => {
+                                    this.createBookingAfterPayment(data.order_id, result);
+                                },
+                                onPending: (result) => {
+                                    alert('Pembayaran pending, silahkan selesaikan pembayaran');
+                                    this.isLoading = false;
+                                },
+                                onError: (result) => {
+                                    alert('Pembayaran gagal');
+                                    this.isLoading = false;
+                                },
+                                onClose: () => {
+                                    alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                                    this.isLoading = false;
+                                }
+                            });
+                        })
+                        .catch(err => {
+                            console.error('Payment intent error:', err);
+                            alert('Gagal membuat payment: ' + err.message);
+                            this.isLoading = false;
                         });
+                },
+
+                // Fungsi untuk menyimpan booking setelah pembayaran berhasil
+                createBookingAfterPayment(orderId, paymentResult) {
+                    fetch('/booking', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            order_id: orderId,
+                            transaction_id: paymentResult.transaction_id,
+                            payment_method: paymentResult.payment_type,
+                            transaction_status: paymentResult.transaction_status
+                        }),
                     })
-                    .catch(err => {
-                        console.error('Booking error:', err);
-                        alert('Gagal booking: ' + err.message);
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
+                        .then(res => {
+                            if (!res.ok) {
+                                return res.json().then(err => {
+                                    throw new Error(err.message || 'Gagal menyimpan booking');
+                                });
+                            }
+                            return res.json();
+                        })
+                        .then(data => {
+                            alert('Pembayaran dan booking berhasil!');
+
+                            // Refresh component data
+                            document.dispatchEvent(new CustomEvent('booking-completed'));
+
+                            // Redirect to booking history page
+                            window.location.href = '/booking/history';
+                        })
+                        .catch(err => {
+                            console.error('Booking error:', err);
+                            alert('Pembayaran berhasil tetapi gagal menyimpan booking: ' + err.message);
+                            this.isLoading = false;
+                        });
+                },
+
+                // Method to refresh booked schedules without reloading the page
+                async refreshBookedSchedules() {
+                    await this.checkBookedSchedules();
                 }
-            }))
-        })
+            }));
+        });
     </script>
 @endsection

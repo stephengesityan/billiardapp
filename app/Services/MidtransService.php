@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\Table;
+use App\Models\User;
 use Midtrans\Config;
 use Midtrans\Snap;
 use Illuminate\Support\Facades\Log;
@@ -42,6 +44,67 @@ class MidtransService
         ]);
     }
 
+    // Method baru untuk membuat transaksi sementara tanpa booking record
+    public function createTemporaryTransaction(Table $table, int $amount, string $orderId, User $user)
+    {
+        try {
+            if ($amount <= 0) {
+                throw new \Exception('Invalid booking amount');
+            }
+
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $orderId,
+                    'gross_amount' => (int) $amount,
+                ],
+                'customer_details' => [
+                    'first_name' => $user->name,
+                    'email' => $user->email,
+                ],
+                'item_details' => [
+                    [
+                        'id' => $table->id,
+                        'price' => (int) $amount,
+                        'quantity' => 1,
+                        'name' => 'Booking Meja ' . $table->name,
+                    ],
+                ],
+                'expiry' => [
+                    'start_time' => now()->format('Y-m-d H:i:s O'),
+                    'unit' => 'hour',
+                    'duration' => 24,
+                ],
+            ];
+
+            Log::info('Creating Midtrans temporary transaction:', [
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'params' => $params
+            ]);
+
+            $snapToken = Snap::getSnapToken($params);
+            
+            if (empty($snapToken)) {
+                throw new \Exception('Empty snap token received from Midtrans');
+            }
+
+            Log::info('Midtrans temporary transaction created successfully:', [
+                'order_id' => $orderId,
+                'snap_token' => $snapToken
+            ]);
+
+            return $snapToken;
+        } catch (\Exception $e) {
+            Log::error('Midtrans temporary transaction failed:', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new \Exception('Failed to create Midtrans transaction: ' . $e->getMessage());
+        }
+    }
+
+    // Metode original untuk backward compatibility
     public function createTransaction(Booking $booking)
     {
         try {
@@ -120,6 +183,15 @@ class MidtransService
                 'fraud_status' => $fraud
             ]);
 
+            // Check if this is a temporary order
+            if (strpos($orderId, 'TEMP-') === 0) {
+                Log::info('Notification for temporary order received, will be handled separately', [
+                    'order_id' => $orderId
+                ]);
+                return null;
+            }
+
+            // Handle existing bookings
             // Extract booking ID from order ID (format: BOOK-{id})
             $bookingId = explode('-', $orderId)[1];
             $booking = Booking::findOrFail($bookingId);
@@ -162,4 +234,4 @@ class MidtransService
             throw $e;
         }
     }
-} 
+}
