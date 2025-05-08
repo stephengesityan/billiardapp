@@ -34,8 +34,18 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('/bookings', [BookingsController::class, 'index'])->name('admin.bookings.index');
-    Route::get('/tables', [TableController::class, 'kelolaMeja'])->name('admin.tables.index');
-
-    Route::get('/tables/{id}/edit', [TableController::class, 'editTable'])->name('admin.tables.edit');
-    Route::put('/tables/{id}', [TableController::class, 'updateTable'])->name('admin.tables.update');
+    Route::get('/bookings/export', [BookingsController::class, 'export'])->name('admin.bookings.export');
+    Route::get('/bookings/{id}', [BookingsController::class, 'show'])->name('admin.bookings.show');
+    Route::get('/bookings/{id}/edit', [BookingsController::class, 'edit'])->name('admin.bookings.edit');
+    Route::put('/bookings/{id}', [BookingsController::class, 'update'])->name('admin.bookings.update');
+    Route::patch('/bookings/{id}/complete', [BookingsController::class, 'complete'])->name('admin.bookings.complete');
+    Route::patch('/bookings/{id}/cancel', [BookingsController::class, 'cancel'])->name('admin.bookings.cancel');
+    
+    // CRUD routes untuk manajemen meja
+    Route::get('/tables', [TableController::class, 'index'])->name('admin.tables.index');
+    Route::get('/tables/create', [TableController::class, 'create'])->name('admin.tables.create');
+    Route::post('/tables', [TableController::class, 'store'])->name('admin.tables.store');
+    Route::get('/tables/{id}/edit', [TableController::class, 'edit'])->name('admin.tables.edit');
+    Route::put('/tables/{id}', [TableController::class, 'update'])->name('admin.tables.update');
+    Route::delete('/tables/{id}', [TableController::class, 'destroy'])->name('admin.tables.destroy');
 });
