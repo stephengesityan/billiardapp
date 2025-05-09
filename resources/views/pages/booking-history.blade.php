@@ -6,7 +6,7 @@
         @if($bookings->isEmpty())
             <div class="bg-white rounded-lg shadow-md p-6 text-center">
                 <p class="text-gray-500">Anda belum memiliki riwayat booking.</p>
-                <a href="{{ route('venues.index') }}" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg">Cari
+                <a href="{{ url('/') }}" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg">Cari
                     Venue</a>
             </div>
         @else

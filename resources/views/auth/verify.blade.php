@@ -14,21 +14,29 @@
                     </div>
                 @endif
 
+                @if (session('verified'))
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+                        <p>{{ __('Akun Anda telah berhasil diverifikasi. Sekarang Anda dapat login.') }}</p>
+                    </div>
+                @endif
+
                 <div class="mb-6">
                     <div class="flex items-center mb-4">
                         <i class="fas fa-envelope-open-text text-blue-500 text-3xl mr-4"></i>
                         <div>
                             <p class="text-gray-700">
-                                {{ __('Sebelum melanjutkan, silakan periksa email Anda untuk link verifikasi.') }}</p>
+                                {{ __('Sebelum melanjutkan, silakan periksa email Anda untuk link verifikasi.') }}
+                            </p>
                             <p class="text-sm text-gray-500 mt-1">
-                                {{ __('Email verifikasi biasanya dikirim dalam beberapa menit.') }}</p>
+                                {{ __('Email verifikasi biasanya dikirim dalam beberapa menit.') }}
+                            </p>
                         </div>
                     </div>
 
                     <div class="bg-gray-50 p-4 rounded-lg mb-4">
                         <p class="text-gray-600 text-sm">
                             <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                            {{ __('Tidak perlu khawatir. Anda sudah dapat login dan menggunakan fitur dasar Ayo Venue. Verifikasi email ini hanya diperlukan untuk fitur tertentu dan keamanan akun Anda.') }}
+                            {{ __('Verifikasi email diperlukan untuk menggunakan fitur aplikasi Ayo Venue. Pastikan Anda memverifikasi email Anda untuk akses penuh ke platform kami.') }}
                         </p>
                     </div>
                 </div>

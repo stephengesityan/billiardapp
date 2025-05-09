@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\VerifiesEmails;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Events\Verified;
 
 class VerificationController extends Controller
 {
@@ -36,59 +37,52 @@ class VerificationController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['verify']);
         $this->middleware('signed')->only('verify');
         $this->middleware('throttle:6,1')->only('verify', 'resend');
     }
 
     /**
-     * Show the email verification notice.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\View\View
-     */
-    public function show(Request $request)
-    {
-        // Jika user sudah terverifikasi, redirect ke halaman utama
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect($this->redirectPath())
-                ->with('success', 'Email anda sudah terverifikasi.');
-        }
-        
-        // Jika user belum terverifikasi dan baru register (email_verified_at adalah null),
-        // tampilkan halaman verifikasi
-        return view('auth.verify');
-    }
-
-    /**
-     * The user has been verified.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return mixed
-     */
-    protected function verified(Request $request)
-    {
-        session()->flash('success', 'Email berhasil diverifikasi! Selamat datang di Ayo Venue.');
-        return redirect($this->redirectPath());
-    }
-
-    /**
-     * Resend the email verification notification.
+     * Mark the authenticated user's email address as verified.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function resend(Request $request)
+    public function verify(Request $request)
     {
-        // Jika user sudah terverifikasi, tidak perlu kirim ulang
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect($this->redirectPath())
-                ->with('success', 'Email anda sudah terverifikasi.');
+        $user = \App\Models\User::find($request->route('id'));
+
+        if (!hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
+            return redirect()->route('verification.notice')
+                ->with('error', 'Link verifikasi tidak valid.');
         }
 
-        // Kirim email verifikasi baru
-        $request->user()->sendEmailVerificationNotification();
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('login')
+                ->with('verified', true)
+                ->with('success', 'Email sudah terverifikasi sebelumnya. Silakan login.');
+        }
 
-        return back()->with('success', 'Link verifikasi baru telah dikirim ke email anda.');
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
+
+        if ($request->user()) {
+            auth()->logout();
+        }
+
+        return redirect()->route('login')
+            ->with('verified', true)
+            ->with('success', 'Email berhasil diverifikasi. Silakan login.');
+    }
+
+    /**
+     * Show the verification success page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function verified()
+    {
+        return view('auth.verified');
     }
 }
