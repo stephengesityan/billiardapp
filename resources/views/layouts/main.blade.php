@@ -39,9 +39,6 @@
                 <!-- Desktop buttons -->
                 <div class="hidden lg:flex items-center space-x-4">
                     @auth
-                        <a href="{{ route('booking.history') }}"
-                            class="text-sm font-medium text-gray-700 hover:text-primary transition">Riwayat Booking</a>
-
                         <div x-data="{ open: false }" class="relative">
                             <button @click="open = !open"
                                 class="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-primary focus:outline-none">
@@ -58,6 +55,17 @@
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     Riwayat Booking
                                 </a>
+                                <a href="{{ route('account.settings') }}"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Pengaturan Akun
+                                </a>
+                                @if (Auth::user()->email_verified_at === null)
+                                    <a href="{{ route('verification.notice') }}"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <span class="text-orange-500"><i class="fas fa-exclamation-circle mr-1"></i></span>
+                                        Verifikasi Email
+                                    </a>
+                                @endif
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit"
@@ -83,6 +91,17 @@
                             class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Riwayat Booking
                         </a>
+                        <a href="{{ route('account.settings') }}"
+                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            Pengaturan Akun
+                        </a>
+                        @if (Auth::user()->email_verified_at === null)
+                            <a href="{{ route('verification.notice') }}"
+                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <span class="text-orange-500"><i class="fas fa-exclamation-circle mr-1"></i></span>
+                                Verifikasi Email
+                            </a>
+                        @endif
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit"
@@ -125,6 +144,19 @@
                                 required>
                             <input type="password" name="password" placeholder="Password"
                                 class="w-full border px-4 py-2 rounded" required>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <input class="mr-2" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                                    <label class="text-sm text-gray-600" for="remember">
+                                        Ingat saya
+                                    </label>
+                                </div>
+                                <a href="{{ route('password.request') }}" class="text-sm text-primary hover:underline">
+                                    Lupa Password?
+                                </a>
+                            </div>
+
                             <button type="submit"
                                 class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Masuk</button>
                         </form>
@@ -165,21 +197,21 @@
     <main class="pt-20">
         @if (session('success') || session('error'))
             <div id="floating-alert" style="
-                                                    position: fixed;
-                                                    top: 30px;
-                                                    left: 50%;
-                                                    transform: translateX(-50%);
-                                                    background-color: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
-                                                    color: {{ session('success') ? '#0f5132' : '#842029' }};
-                                                    padding: 10px 20px;
-                                                    border-radius: 6px;
-                                                    font-size: 14px;
-                                                    font-weight: 500;
-                                                    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-                                                    z-index: 9999;
-                                                    max-width: 300px;
-                                                    text-align: center;
-                                                ">
+                                                                    position: fixed;
+                                                                    top: 30px;
+                                                                    left: 50%;
+                                                                    transform: translateX(-50%);
+                                                                    background-color: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
+                                                                    color: {{ session('success') ? '#0f5132' : '#842029' }};
+                                                                    padding: 10px 20px;
+                                                                    border-radius: 6px;
+                                                                    font-size: 14px;
+                                                                    font-weight: 500;
+                                                                    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+                                                                    z-index: 9999;
+                                                                    max-width: 300px;
+                                                                    text-align: center;
+                                                                ">
                 {{ session('success') ?? session('error') }}
             </div>
 

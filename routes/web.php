@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\pages\HomeController;
 use App\Http\Controllers\pages\VenueController;
 use App\Http\Controllers\pages\BookingController;
@@ -10,7 +11,9 @@ use App\Http\Controllers\admin\AdminController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
-Auth::routes();
+// Authentication Routes (dengan verifikasi email aktif)
+Auth::routes(['verify' => true]);
+
 Route::get('/', [HomeController::class, "index"])->name('index');
 Route::get('/venue/{venueName}', [VenueController::class, "venue"])->name('venue');
 
@@ -20,7 +23,7 @@ Route::post('/booking', [BookingController::class, 'store'])->name('booking.stor
 Route::get('/booking/schedules', [BookingController::class, 'getBookedSchedules'])->name('booking.schedules');
 Route::post('/payment/notification', [BookingController::class, 'handleNotification'])->name('payment.notification');
 
-// Booking history routes (authenticated only)
+// Booking history routes (authenticated only, tidak perlu verified)
 Route::middleware(['auth'])->group(function () {
     Route::get('/booking/history', [BookingHistoryController::class, 'index'])->name('booking.history');
     
@@ -28,9 +31,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/booking/pending', [BookingController::class, 'getPendingBookings'])->name('booking.pending');
     Route::get('/booking/pending/{id}/resume', [BookingController::class, 'resumeBooking'])->name('booking.resume');
     Route::delete('/booking/pending/{id}', [BookingController::class, 'deletePendingBooking'])->name('booking.pending.delete');
+    
+    // Profile route definition - use the existing account settings as the profile page
+    Route::get('/profile', [AccountController::class, 'settings'])->name('profile');
+    
+    // Routes that require password confirmation
+    Route::middleware(['password.confirm'])->group(function () {
+        // Add routes that require password confirmation here
+        // For example, account settings, deleting accounts, etc.
+        Route::get('/account/settings', [AccountController::class, 'settings'])->name('account.settings');
+        Route::put('/account/update', [AccountController::class, 'update'])->name('account.update');
+    });
 });
 
-// Admin routes
+// Admin routes (admin tetap perlu verified untuk keamanan)
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('/bookings', [BookingsController::class, 'index'])->name('admin.bookings.index');
