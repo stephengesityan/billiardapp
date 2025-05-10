@@ -142,6 +142,9 @@
     <script src="https://app.sandbox.midtrans.com/snap/snap.js"
         data-client-key="{{ config('midtrans.client_key') }}"></script>
     <script>
+        // Custom event for refreshing pending bookings across components
+        const refreshPendingBookingsEvent = new Event('refresh-pending-bookings');
+
         function updateClock() {
             const now = new Date();
             const options = { timeZone: 'Asia/Jakarta', hour12: false };
@@ -153,28 +156,36 @@
 
         // Format functions for pending bookings
         function formatDateTime(dateTimeStr) {
-            const date = new Date(dateTimeStr);
-            // Explicitly use Jakarta timezone for display
-            return new Intl.DateTimeFormat('id-ID', {
+            // Parse the ISO date string without timezone conversion
+            const parts = dateTimeStr.split(/[^0-9]/);
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // JS months are 0-based
+            const day = parseInt(parts[2]);
+            const hour = parseInt(parts[3]);
+            const minute = parseInt(parts[4]);
+
+            const dateFormatter = new Intl.DateTimeFormat('id-ID', {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'Asia/Jakarta'
-            }).format(date);
+            });
+
+            // Format the date and time separately to avoid timezone issues
+            const dateObj = new Date(year, month, day);
+            return dateFormatter.format(dateObj) + ' ' +
+                (hour.toString().padStart(2, '0') + ':' +
+                    minute.toString().padStart(2, '0'));
         }
 
         function formatTime(timeStr) {
-            const date = new Date(timeStr);
-            // Explicitly use Jakarta timezone for display
-            return new Intl.DateTimeFormat('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'Asia/Jakarta'
-            }).format(date);
+            // Parse the ISO date string without timezone conversion
+            const parts = timeStr.split(/[^0-9]/);
+            const hour = parseInt(parts[3]);
+            const minute = parseInt(parts[4]);
+
+            // Format time manually to avoid timezone issues
+            return hour.toString().padStart(2, '0') + ':' +
+                minute.toString().padStart(2, '0');
         }
 
         function formatPrice(price) {
@@ -190,6 +201,13 @@
 
                 init() {
                     this.fetchPendingBookings();
+
+                    // Listen for the custom event to refresh pending bookings
+                    document.addEventListener('refresh-pending-bookings', () => {
+                        console.log('Refreshing pending bookings from event');
+                        this.fetchPendingBookings();
+                        this.showPendingBookings = true; // Auto-expand the section
+                    });
                 },
 
                 fetchPendingBookings() {
@@ -208,6 +226,13 @@
 
                             // Log jumlah pending bookings yang ditemukan
                             console.log("Found", this.pendingBookings.length, "pending bookings");
+
+                            // If we have pending bookings and this was triggered by payment cancellation,
+                            // make sure to show them
+                            if (this.pendingBookings.length > 0 && window.justClosedPayment) {
+                                this.showPendingBookings = true;
+                                window.justClosedPayment = false;
+                            }
                         })
                         .catch(error => console.error('Error fetching pending bookings:', error));
                 },
@@ -392,6 +417,9 @@
                     const start_time = `${today} ${selectedTime}`;
                     const end_time = `${today} ${endTimeFormatted}`;
 
+                    // Track that we're creating a new booking
+                    window.creatingNewBooking = true;
+
                     // Kirim ke backend untuk membuat payment intent (tanpa membuat booking dulu)
                     fetch('/booking/payment-intent', {
                         method: 'POST',
@@ -430,10 +458,24 @@
                                 onError: (result) => {
                                     alert('Pembayaran gagal');
                                     this.isLoading = false;
+                                    // Reset the state
+                                    window.creatingNewBooking = false;
                                 },
                                 onClose: () => {
                                     alert('Anda menutup popup tanpa menyelesaikan pembayaran');
                                     this.isLoading = false;
+
+                                    // Set flag to indicate payment popup was just closed
+                                    window.justClosedPayment = true;
+
+                                    // Only trigger the refresh if we were creating a new booking
+                                    if (window.creatingNewBooking) {
+                                        // Reset the flag
+                                        window.creatingNewBooking = false;
+
+                                        // Dispatch the custom event to refresh pending bookings
+                                        document.dispatchEvent(refreshPendingBookingsEvent);
+                                    }
                                 }
                             });
                         })
@@ -441,6 +483,7 @@
                             console.error('Payment intent error:', err);
                             alert('Gagal membuat payment: ' + err.message);
                             this.isLoading = false;
+                            window.creatingNewBooking = false;
                         });
                 },
 
@@ -470,6 +513,9 @@
                         .then(data => {
                             alert('Pembayaran dan booking berhasil!');
 
+                            // Reset the flag
+                            window.creatingNewBooking = false;
+
                             // Refresh component data
                             document.dispatchEvent(new CustomEvent('booking-completed'));
 
@@ -480,6 +526,7 @@
                             console.error('Booking error:', err);
                             alert('Pembayaran berhasil tetapi gagal menyimpan booking: ' + err.message);
                             this.isLoading = false;
+                            window.creatingNewBooking = false;
                         });
                 },
 

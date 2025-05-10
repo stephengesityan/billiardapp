@@ -1,245 +1,226 @@
-@extends('layouts.app')
+@extends('layouts.main')
 
 @section('content')
-<div class="py-12 animated-bg">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-lg border-0 rounded-3 overflow-hidden">
-                    <div class="card-header bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-3">
-                        <h2 class="mb-0 d-flex align-items-center">
-                            <i class="fas fa-user-cog me-2"></i>{{ __('Account Settings') }}
-                        </h2>
-                    </div>
-                    <div class="card-body p-4">
+    <div class="min-h-screen bg-gray-50 py-12">
+        <div class="container mx-auto px-4 lg:px-44">
+            <div class="flex justify-center">
+                <div class="w-full max-w-2xl">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                            <h2 class="text-xl font-semibold text-white flex items-center">
+                                <i class="fas fa-user-cog mr-2"></i>{{ __('Pengaturan Akun') }}
+                            </h2>
+                        </div>
+                        <div class="p-6">
 
-                        @if (session('message'))
-                            <div class="alert alert-success d-flex align-items-center border-0 shadow-sm mb-4" role="alert">
-                                <div class="me-2">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div>
-                                    {{ session('message') }}
-                                </div>
-                            </div>
-                        @endif
-
-                        @if (session('success'))
-                            <div class="alert alert-success d-flex align-items-center border-0 shadow-sm mb-4" role="alert">
-                                <div class="me-2">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div>
-                                    {{ session('success') }}
-                                </div>
-                            </div>
-                        @endif
-
-                        <form method="POST" action="{{ route('account.update') }}">
-                            @csrf
-                            @method('PUT')
-
-                            <!-- Name -->
-                            <div class="mb-4">
-                                <label for="name" class="form-label fw-medium">
-                                    <i class="fas fa-user text-primary me-1"></i>{{ __('Name') }}
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light">
-                                        <i class="fas fa-user-edit"></i>
-                                    </span>
-                                    <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}"
-                                        required autofocus class="form-control border-start-0"
-                                        placeholder="Enter your name">
-                                </div>
-                                @error('name')
-                                    <div class="text-danger mt-1 small"><i
-                                            class="fas fa-exclamation-circle me-1"></i>{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Email -->
-                            <div class="mb-4">
-                                <label for="email" class="form-label fw-medium">
-                                    <i class="fas fa-envelope text-primary me-1"></i>{{ __('Email') }}
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light">
-                                        <i class="fas fa-at"></i>
-                                    </span>
-                                    <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}"
-                                        required class="form-control border-start-0" placeholder="Enter your email">
-                                </div>
-                                @error('email')
-                                    <div class="text-danger mt-1 small"><i
-                                            class="fas fa-exclamation-circle me-1"></i>{{ $message }}</div>
-                                @enderror
-                                @if ($user->email)
-                                    <div class="mt-2 small d-flex align-items-center">
-                                        @if ($user->hasVerifiedEmail())
-                                            <span class="text-success d-flex align-items-center">
-                                                <i class="fas fa-check-circle me-1"></i> {{ __('Email verified') }}
-                                            </span>
-                                        @else
-                                            <span class="text-warning d-flex align-items-center">
-                                                <i class="fas fa-exclamation-circle me-1"></i> {{ __('Not Verified') }}
-                                            </span>
-                                            <a href="{{ route('verification.resend') }}"
-                                                class="ms-2 text-primary text-decoration-none">
-                                                {{ __('Resend verification email') }}
-                                            </a>
-                                        @endif
+                            @if (session('message') || session('success'))
+                                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-md flex items-center"
+                                    role="alert">
+                                    <div class="mr-2">
+                                        <i class="fas fa-check-circle"></i>
                                     </div>
-                                @endif
-                            </div>
-
-                            <div class="card mt-4 mb-4 shadow-sm border-0">
-                                <div class="card-header bg-light">
-                                    <h3 class="mb-0 fs-5 fw-semibold text-primary">
-                                        <i class="fas fa-lock me-2"></i>{{ __('Change Password') }}
-                                    </h3>
+                                    <div>
+                                        {{ session('message') ?? session('success') }}
+                                    </div>
                                 </div>
-                                <div class="card-body">
+                            @endif
+
+                            <form method="POST" action="{{ route('account.update') }}" class="space-y-6">
+                                @csrf
+                                @method('PUT')
+
+                                <!-- Name -->
+                                <div>
+                                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-user text-blue-600 mr-1"></i>{{ __('Nama') }}
+                                    </label>
+                                    <div class="flex rounded-md shadow-sm">
+                                        <span
+                                            class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                                            <i class="fas fa-user-edit"></i>
+                                        </span>
+                                        <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}"
+                                            required autofocus
+                                            class="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none rounded-r-md border-gray-300 p-1"
+                                            placeholder="Masukkan nama">
+                                    </div>
+                                    @error('name')
+                                        <div class="text-red-500 mt-1 text-sm"><i
+                                                class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <!-- Email -->
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-envelope text-blue-600 mr-1"></i>{{ __('Email') }}
+                                    </label>
+                                    <div class="flex rounded-md shadow-sm">
+                                        <span
+                                            class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                                            <i class="fas fa-at"></i>
+                                        </span>
+                                        <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}"
+                                            required
+                                            class="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none rounded-r-md border-gray-300 p-1"
+                                            placeholder="Masukkan email">
+                                    </div>
+                                    @error('email')
+                                        <div class="text-red-500 mt-1 text-sm"><i
+                                                class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</div>
+                                    @enderror
+                                    @if ($user->email)
+                                        <div class="mt-2 text-sm flex items-center">
+                                            @if ($user->hasVerifiedEmail())
+                                                <span class="text-green-600 flex items-center">
+                                                    <i class="fas fa-check-circle mr-1"></i> {{ __('Email terverifikasi') }}
+                                                </span>
+                                            @else
+                                                <span class="text-yellow-600 flex items-center">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i> {{ __('Belum Terverifikasi') }}
+                                                </span>
+                                                <a href="{{ route('verification.resend') }}"
+                                                    class="ml-2 text-blue-600 hover:underline">
+                                                    {{ __('Kirim ulang email verifikasi') }}
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="bg-gray-50 rounded-lg p-4 mt-6 mb-6">
+                                    <h3 class="text-lg font-semibold text-blue-600 mb-4 flex items-center">
+                                        <i class="fas fa-lock mr-2"></i>{{ __('Ubah Password') }}
+                                    </h3>
+
                                     <!-- Current Password -->
-                                    <div class="mb-3">
-                                        <label for="current_password" class="form-label fw-medium">
-                                            <i class="fas fa-key text-primary me-1"></i>{{ __('Current Password') }}
+                                    <div class="mb-4">
+                                        <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">
+                                            <i class="fas fa-key text-blue-600 mr-1"></i>{{ __('Password Saat Ini') }}
                                         </label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light">
+                                        <div class="flex rounded-md shadow-sm">
+                                            <span
+                                                class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
                                                 <i class="fas fa-lock"></i>
                                             </span>
                                             <input id="current_password" type="password" name="current_password"
-                                                class="form-control border-start-0"
-                                                placeholder="Enter current password">
-                                            <button class="btn btn-outline-secondary" type="button"
-                                                id="toggleCurrentPassword">
+                                                class="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none border-gray-300 p-1"
+                                                placeholder="Masukkan password saat ini">
+                                            <button type="button" id="toggleCurrentPassword"
+                                                class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
                                         @error('current_password')
-                                            <div class="text-danger mt-1 small"><i
-                                                    class="fas fa-exclamation-circle me-1"></i>{{ $message }}</div>
+                                            <div class="text-red-500 mt-1 text-sm"><i
+                                                    class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</div>
                                         @enderror
                                     </div>
 
                                     <!-- New Password -->
-                                    <div class="mb-3">
-                                        <label for="password" class="form-label fw-medium">
-                                            <i class="fas fa-lock-open text-primary me-1"></i>{{ __('New Password') }}
+                                    <div class="mb-4">
+                                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                                            <i class="fas fa-lock-open text-blue-600 mr-1"></i>{{ __('Password Baru') }}
                                         </label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light">
+                                        <div class="flex rounded-md shadow-sm">
+                                            <span
+                                                class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
                                                 <i class="fas fa-key"></i>
                                             </span>
                                             <input id="password" type="password" name="password"
-                                                class="form-control border-start-0" placeholder="Enter new password">
-                                            <button class="btn btn-outline-secondary" type="button"
-                                                id="toggleNewPassword">
+                                                class="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none border-gray-300 p-1"
+                                                placeholder="Masukkan password baru">
+                                            <button type="button" id="toggleNewPassword"
+                                                class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
                                         @error('password')
-                                            <div class="text-danger mt-1 small"><i 
-                                                class="fas fa-exclamation-circle me-1"></i>{{ $message }}</div>
+                                            <div class="text-red-500 mt-1 text-sm"><i
+                                                    class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</div>
                                         @enderror
                                     </div>
 
                                     <!-- Confirm New Password -->
-                                    <div class="mb-3">
-                                        <label for="password_confirmation" class="form-label fw-medium">
-                                            <i class="fas fa-check-double text-primary me-1"></i>{{ __('Confirm New Password') }}
+                                    <div>
+                                        <label for="password_confirmation"
+                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                            <i
+                                                class="fas fa-check-double text-blue-600 mr-1"></i>{{ __('Konfirmasi Password Baru') }}
                                         </label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light">
+                                        <div class="flex rounded-md shadow-sm">
+                                            <span
+                                                class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
                                                 <i class="fas fa-key"></i>
                                             </span>
                                             <input id="password_confirmation" type="password" name="password_confirmation"
-                                                class="form-control border-start-0" placeholder="Confirm new password">
-                                            <button class="btn btn-outline-secondary" type="button"
-                                                id="toggleConfirmPassword">
+                                                class="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none border-gray-300 p-1"
+                                                placeholder="Konfirmasi password baru">
+                                            <button type="button" id="toggleConfirmPassword"
+                                                class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="d-flex justify-content-end mt-4">
-                                <button type="submit"
-                                    class="btn btn-primary-custom d-flex align-items-center">
-                                    <i class="fas fa-save me-2"></i>{{ __('Update Account') }}
-                                </button>
-                            </div>
-                        </form>
+                                <div class="flex justify-end mt-6">
+                                    <button type="submit"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center transition">
+                                        <i class="fas fa-save mr-2"></i>{{ __('Simpan Perubahan') }}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<style>
-    @keyframes fade-in-down {
-        0% {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
+    <script>
+        // Toggle password visibility
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleCurrentPassword = document.getElementById('toggleCurrentPassword');
+            const toggleNewPassword = document.getElementById('toggleNewPassword');
+            const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
 
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
+            const currentPassword = document.getElementById('current_password');
+            const newPassword = document.getElementById('password');
+            const confirmPassword = document.getElementById('password_confirmation');
 
-    .animate-fade-in-down {
-        animation: fade-in-down 0.5s ease-out;
-    }
-</style>
-
-<script>
-    // Toggle password visibility
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleCurrentPassword = document.getElementById('toggleCurrentPassword');
-        const toggleNewPassword = document.getElementById('toggleNewPassword');
-        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-        
-        const currentPassword = document.getElementById('current_password');
-        const newPassword = document.getElementById('password');
-        const confirmPassword = document.getElementById('password_confirmation');
-        
-        if(toggleCurrentPassword) {
-            toggleCurrentPassword.addEventListener('click', function() {
-                togglePasswordVisibility(currentPassword, this);
-            });
-        }
-        
-        if(toggleNewPassword) {
-            toggleNewPassword.addEventListener('click', function() {
-                togglePasswordVisibility(newPassword, this);
-            });
-        }
-        
-        if(toggleConfirmPassword) {
-            toggleConfirmPassword.addEventListener('click', function() {
-                togglePasswordVisibility(confirmPassword, this);
-            });
-        }
-        
-        function togglePasswordVisibility(input, button) {
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            input.setAttribute('type', type);
-            
-            // Toggle icon
-            const icon = button.querySelector('i');
-            if (type === 'text') {
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
+            if (toggleCurrentPassword) {
+                toggleCurrentPassword.addEventListener('click', function () {
+                    togglePasswordVisibility(currentPassword, this);
+                });
             }
-        }
-    });
-</script>
+
+            if (toggleNewPassword) {
+                toggleNewPassword.addEventListener('click', function () {
+                    togglePasswordVisibility(newPassword, this);
+                });
+            }
+
+            if (toggleConfirmPassword) {
+                toggleConfirmPassword.addEventListener('click', function () {
+                    togglePasswordVisibility(confirmPassword, this);
+                });
+            }
+
+            function togglePasswordVisibility(input, button) {
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+
+                // Toggle icon
+                const icon = button.querySelector('i');
+                if (type === 'text') {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        });
+    </script>
 @endsection

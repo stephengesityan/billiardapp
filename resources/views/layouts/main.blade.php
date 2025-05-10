@@ -28,8 +28,6 @@
             </a>
 
             <div class="flex items-center space-x-4">
-                <a href="#"><i class="fa fa-shopping-cart text-xl text-gray-700"></i></a>
-
                 <!-- Mobile hamburger -->
                 <button @click="isMobileMenuOpen = !isMobileMenuOpen"
                     class="block lg:hidden border-l pl-4 border-gray-300 focus:outline-none">
@@ -159,10 +157,6 @@
 
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
-                            <input class="mr-2" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                            <label class="text-sm text-gray-600" for="remember">
-                                Ingat saya
-                            </label>
                         </div>
                         <a href="{{ route('password.request') }}" class="text-sm text-primary hover:underline">
                             Lupa Password?
