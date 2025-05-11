@@ -63,7 +63,9 @@ class LoginController extends Controller
         }
         
         session()->flash('success', 'Login berhasil!');
-        if ($user->role === 'admin') {
+        if ($user->role === 'superadmin') {
+            return redirect('/superadmin');
+        } elseif ($user->role === 'admin') {
             return redirect('/admin');
         }
         return redirect()->intended($this->redirectTo);

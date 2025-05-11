@@ -21,6 +21,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'role',
+        'venue_id',
     ];
 
     /**
@@ -51,5 +53,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+    
+    /**
+     * Get the venue that the admin belongs to.
+     */
+    public function venue()
+    {
+        return $this->belongsTo(Venue::class);
     }
 }

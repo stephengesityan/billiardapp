@@ -9,6 +9,9 @@ use App\Http\Controllers\admin\BookingsController;
 use App\Http\Controllers\admin\TableController;
 use App\Http\Controllers\admin\AdminController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\superadmin\SuperAdminController;
+use App\Http\Controllers\superadmin\AdminManagementController;
+use App\Http\Controllers\superadmin\VenueManagementController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -74,4 +77,25 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->group(func
     Route::get('/tables/{id}/edit', [TableController::class, 'edit'])->name('admin.tables.edit');
     Route::put('/tables/{id}', [TableController::class, 'update'])->name('admin.tables.update');
     Route::delete('/tables/{id}', [TableController::class, 'destroy'])->name('admin.tables.destroy');
+});
+
+// Superadmin routes
+Route::middleware(['auth', 'verified', 'is_superadmin'])->prefix('superadmin')->group(function () {
+    Route::get('/', [App\Http\Controllers\superadmin\SuperAdminController::class, 'index'])->name('superadmin.dashboard');
+
+    // Tambahkan route untuk manajemen Admin
+    Route::get('/admin', [AdminManagementController::class, 'index'])->name('superadmin.admin.index');
+    Route::get('/admin/create', [AdminManagementController::class, 'create'])->name('superadmin.admin.create');
+    Route::post('/admin', [AdminManagementController::class, 'store'])->name('superadmin.admin.store');
+    Route::get('/admin/{id}/edit', [AdminManagementController::class, 'edit'])->name('superadmin.admin.edit');
+    Route::put('/admin/{id}', [AdminManagementController::class, 'update'])->name('superadmin.admin.update');
+    Route::delete('/admin/{id}', [AdminManagementController::class, 'destroy'])->name('superadmin.admin.destroy');
+    
+    // Tambahkan route untuk manajemen Venue
+    Route::get('/venue', [VenueManagementController::class, 'index'])->name('superadmin.venue.index');
+    Route::get('/venue/create', [VenueManagementController::class, 'create'])->name('superadmin.venue.create');
+    Route::post('/venue', [VenueManagementController::class, 'store'])->name('superadmin.venue.store');
+    Route::get('/venue/{id}/edit', [VenueManagementController::class, 'edit'])->name('superadmin.venue.edit');
+    Route::put('/venue/{id}', [VenueManagementController::class, 'update'])->name('superadmin.venue.update');
+    Route::delete('/venue/{id}', [VenueManagementController::class, 'destroy'])->name('superadmin.venue.destroy');
 });
