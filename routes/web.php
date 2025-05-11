@@ -45,6 +45,9 @@ Route::middleware(['auth'])->group(function () {
 
 // Routes that require both authentication and email verification
 Route::middleware(['auth', 'verified'])->group(function () {
+     // Admin direct booking route (hanya akan berfungsi untuk admin dari controller)
+    Route::post('/booking/admin-direct', [BookingController::class, 'adminDirectBooking'])->name('booking.admin-direct');
+    
     // Booking history routes
     Route::get('/booking/history', [BookingHistoryController::class, 'index'])->name('booking.history');
     
@@ -57,6 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['password.confirm'])->group(function () {
         // Any sensitive operations that should still require password confirmation can go here
     });
+
 });
 
 // Admin routes (admin tetap perlu verified untuk keamanan)

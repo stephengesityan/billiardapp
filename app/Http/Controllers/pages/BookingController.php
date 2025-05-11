@@ -22,6 +22,84 @@ class BookingController extends Controller
         $this->midtransService = $midtransService;
     }
 
+    // Tambahkan method baru untuk booking langsung oleh admin
+    public function adminDirectBooking(Request $request) {
+        try {
+            $request->validate([
+                'table_id' => 'required|exists:tables,id',
+                'start_time' => 'required|date',
+                'end_time' => 'required|date|after:start_time',
+            ]);
+            
+            $user = Auth::user();
+            
+            // Validasi bahwa user adalah admin dan mengelola venue dari meja tersebut
+            $table = Table::findOrFail($request->table_id);
+            if ($user->role !== 'admin' || $user->venue_id !== $table->venue_id) {
+                return response()->json([
+                    'message' => 'Unauthorized action'
+                ], 403);
+            }
+
+            // Cek konflik booking
+            $conflict = Booking::where('table_id', $request->table_id)
+                    ->where(function($query) use ($request) {
+                        $query->whereBetween('start_time', [$request->start_time, $request->end_time])
+                        ->orWhere(function($query) use ($request) {
+                            $query->where('start_time', '<', $request->start_time)
+                            ->where('end_time', '>', $request->start_time);
+                        });
+                    })
+                    ->where('status', 'paid')
+                    ->exists();
+
+            if ($conflict) {
+                return response()->json(['message' => 'Meja sudah dibooking di jam tersebut'], 409);
+            }
+
+            // Hitung total biaya (meskipun admin tidak membayar, kita tetap catat nilainya)
+            $startTime = Carbon::parse($request->start_time);
+            $endTime = Carbon::parse($request->end_time);
+            $duration = $endTime->diffInHours($startTime);
+            $totalAmount = $duration * $table->price_per_hour;
+            
+            // Generate order ID unik untuk admin
+            $adminOrderId = 'ADMIN-' . $user->id . '-' . time();
+            
+            // Buat booking langsung dengan status paid
+            $booking = Booking::create([
+                'table_id' => $request->table_id,
+                'user_id' => $user->id,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time,
+                'status' => 'paid', // langsung set sebagai paid
+                'total_amount' => $totalAmount,
+                'payment_id' => null, // Admin tidak perlu payment_id
+                'payment_method' => 'admin_direct', // Tandai sebagai booking langsung admin
+                'order_id' => $adminOrderId,
+            ]);
+
+            // Update table status menjadi Booked
+            $table->update(['status' => 'Booked']);
+            
+            return response()->json([
+                'message' => 'Booking created successfully',
+                'booking_id' => $booking->id
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Admin direct booking error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to create booking: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
     public function createPaymentIntent(Request $request) {
         try {
             $request->validate([
@@ -29,6 +107,13 @@ class BookingController extends Controller
                 'start_time' => 'required|date',
                 'end_time' => 'required|date|after:start_time',
             ]);
+
+            $user = Auth::user();
+            $table = Table::findOrFail($request->table_id);
+
+            if ($user->role === 'admin' && $user->venue_id === $table->venue_id) {
+                return $this->adminDirectBooking($request);
+            }
 
             // Cek apakah meja sedang dibooking pada waktu tersebut (hanya yang sudah paid)
             $conflict = Booking::where('table_id', $request->table_id)
