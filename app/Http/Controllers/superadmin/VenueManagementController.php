@@ -157,7 +157,8 @@ class VenueManagementController extends Controller
         if ($venue->image && Storage::disk('public')->exists($venue->image)) {
             Storage::disk('public')->delete($venue->image);
         }
-        
+
+        $venue->tables()->delete();
         $venue->delete();
 
         return redirect()->route('superadmin.venue.index')

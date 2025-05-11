@@ -64,43 +64,27 @@
                         terendah</span></p>
             </div>
         </div>
-        <div class="px-4 lg:px-44 flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-4">
-            <a href="/venue/capitano" class="md:min-h-48 md:flex md:flex-col">
-                <div>
-                    <img src="{{ asset('images/billiard2.jpg') }}" alt="Ayo Logo" class="w-full rounded-t-lg">
-                </div>
-                <div class="md:flex-grow px-4 py-2 border border-gray-400 rounded-b-lg">
-                    <h3 class="text-sm text-gray-400 font-semibold mb-2">Venue</h3>
-                    <h1 class="text-xl text-gray-800 font-semibold">Capitano Billiard</h1>
-                    <p class="text-sm text-gray-500">Genteng</p>
-                    <p class="mt-10 text-gray-500 text-sm">Mulai: <span class="font-bold text-gray-800">Rp30,000
-                        </span><span class="text-gray-400 font-thin text-sm">/ jam</span></p>
-                </div>
-            </a>
-            <a href="/venue/osing" class="md:min-h-48 md:flex md:flex-col">
-                <div>
-                    <img src="{{ asset('images/billiard3.jpg') }}" alt="Ayo Logo" class="w-full rounded-t-lg">
-                </div>
-                <div class="md:flex-grow px-4 py-2 border border-gray-400 rounded-b-lg">
-                    <h3 class="text-sm text-gray-400 font-semibold mb-2">Venue</h3>
-                    <h1 class="text-xl text-gray-800 font-semibold">Osing Billiard Center</h1>
-                    <p class="text-sm text-gray-500">Lidah</p>
-                    <p class="mt-10 text-gray-500 text-sm">Mulai: <span class="font-bold text-gray-800">Rp25,000
-                        </span><span class="text-gray-400 font-thin text-sm">/ jam</span></p>
-                </div>
-            </a>
-            <a href="/venue/das" class="md:min-h-48 md:flex md:flex-col">
-                <div>
-                    <img src="{{ asset('images/billiard4.jpg') }}" alt="Ayo Logo" class="w-full rounded-t-lg">
-                </div>
-                <div class="md:flex-grow px-4 py-2 border border-gray-400 rounded-b-lg">
-                    <h3 class="text-sm text-gray-400 font-semibold mb-2">Venue</h3>
-                    <h1 class="text-xl text-gray-800 font-semibold">DAS Game & Billiard</h1>
-                    <p class="text-sm text-gray-500">Jalen</p>
-                    <p class="mt-10 text-gray-500 text-sm">Mulai: <span class="font-bold text-gray-800">Rp20,000
-                        </span><span class="text-gray-400 font-thin text-sm">/ jam</span></p>
-                </div>
-            </a>
+        <div class="px-4 lg:px-44">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @forelse ($venues as $venue)
+                    <a href="/venue/{{ ($venue->name) }}"
+                        class="flex flex-col h-full border border-gray-400 rounded-lg overflow-hidden">
+                        <img src="{{ $venue->image }}" alt="{{ $venue->name }}" class="w-full h-48 object-cover">
+                        <div class="flex-grow px-4 py-2">
+                            <h3 class="text-sm text-gray-400 font-semibold mb-2">Venue</h3>
+                            <h1 class="text-xl text-gray-800 font-semibold">{{ $venue->name }}</h1>
+                            <p class="text-sm text-gray-500">Genteng</p>
+                            <p class="mt-10 text-gray-500 text-sm">Mulai:
+                                <span class="font-bold text-gray-800">Rp30,000</span>
+                                <span class="text-gray-400 font-thin text-sm">/ jam</span>
+                            </p>
+                        </div>
+                    </a>
+                @empty
+                    <p class="text-center col-span-full text-gray-500">Belum ada venue tersedia.</p>
+                @endforelse
+            </div>
         </div>
+
     </div>
 @endsection
