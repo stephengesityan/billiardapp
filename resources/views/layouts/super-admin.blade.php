@@ -46,18 +46,19 @@
                                 <span class="ml-3">Dashboard</span>
                             </a>
                         </li>
-                        <li class="mb-2">
-                            <a href="{{ route('superadmin.admin.index') }}"
-                                class="flex items-center p-3 rounded-lg hover:bg-blue-700 {{ request()->routeIs('superadmin.admin.*') ? 'bg-blue-700' : '' }}">
-                                <i class="fas fa-users-cog w-5"></i>
-                                <span class="ml-3">Manajemen Admin</span>
-                            </a>
-                        </li>
+
                         <li class="mb-2">
                             <a href="{{ route('superadmin.venue.index') }}"
                                 class="flex items-center p-3 rounded-lg hover:bg-blue-700 {{ request()->routeIs('superadmin.venue.*') ? 'bg-blue-700' : '' }}">
                                 <i class="fas fa-building w-5"></i>
                                 <span class="ml-3">Manajemen Venue</span>
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ route('superadmin.admin.index') }}"
+                                class="flex items-center p-3 rounded-lg hover:bg-blue-700 {{ request()->routeIs('superadmin.admin.*') ? 'bg-blue-700' : '' }}">
+                                <i class="fas fa-users-cog w-5"></i>
+                                <span class="ml-3">Manajemen Admin</span>
                             </a>
                         </li>
                         <li class="mb-2">

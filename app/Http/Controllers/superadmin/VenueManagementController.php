@@ -150,18 +150,30 @@ class VenueManagementController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
-    {
-        $venue = Venue::findOrFail($id);
-        
-        // Delete the venue image if exists
-        if ($venue->image && Storage::disk('public')->exists($venue->image)) {
-            Storage::disk('public')->delete($venue->image);
-        }
+{
+    $venue = Venue::findOrFail($id);
 
-        $venue->tables()->delete();
-        $venue->delete();
-
-        return redirect()->route('superadmin.venue.index')
-            ->with('success', 'Venue berhasil dihapus!');
+    // Hapus gambar venue jika ada
+    if ($venue->image && Storage::disk('public')->exists($venue->image)) {
+        Storage::disk('public')->delete($venue->image);
     }
+
+    // Ambil semua meja yang ada di venue ini
+    $tables = $venue->tables;
+
+    // Hapus semua bookings yang terkait dengan meja-meja ini
+    foreach ($tables as $table) {
+        $table->bookings()->delete(); // pastikan relasi bookings ada di model Table
+    }
+
+    // Hapus semua meja dari venue
+    $venue->tables()->delete();
+
+    // Hapus venue-nya
+    $venue->delete();
+
+    return redirect()->route('superadmin.venue.index')
+        ->with('success', 'Venue berhasil dihapus!');
+}
+
 }
