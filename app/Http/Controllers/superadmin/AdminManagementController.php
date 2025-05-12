@@ -5,6 +5,7 @@ namespace App\Http\Controllers\superadmin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Booking;
 use App\Models\Venue;
 
 class AdminManagementController extends Controller
@@ -77,4 +78,20 @@ class AdminManagementController extends Controller
         return redirect()->route('superadmin.admin.index')
             ->with('success', 'Admin berhasil ditambahkan!');
     }
+
+    public function destroy($id)
+{
+    // Temukan user dengan role admin
+    $admin = User::where('role', 'admin')->findOrFail($id);
+
+    // Hapus semua bookings yang terkait dengan admin ini
+    Booking::where('user_id', $admin->id)->delete();
+
+    // Hapus admin
+    $admin->delete();
+
+    // Redirect dengan pesan sukses
+    return redirect()->route('superadmin.admin.index')
+        ->with('success', 'Admin berhasil dihapus beserta data booking yang terkait.');
+}
 }

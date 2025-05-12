@@ -127,10 +127,6 @@
                                 {{ $admin->created_at->format('d M Y') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{{ route('superadmin.admin.edit', $admin->id) }}"
-                                    class="text-blue-600 hover:text-blue-800 mr-3">
-                                    <i class="fas fa-edit"></i>
-                                </a>
                                 <button type="button" data-admin-id="{{ $admin->id }}" data-admin-name="{{ $admin->name }}"
                                     class="text-red-600 hover:text-red-800 delete-admin-btn">
                                     <i class="fas fa-trash-alt"></i>

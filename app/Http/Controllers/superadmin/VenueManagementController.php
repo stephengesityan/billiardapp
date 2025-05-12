@@ -4,6 +4,8 @@ namespace App\Http\Controllers\superadmin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\User;
+use App\Models\Booking;
 use App\Models\Venue;
 use Illuminate\Support\Facades\Storage;
 
@@ -149,31 +151,38 @@ class VenueManagementController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-{
-    $venue = Venue::findOrFail($id);
+   public function destroy($id)
+    {
+        $venue = Venue::findOrFail($id);
 
-    // Hapus gambar venue jika ada
-    if ($venue->image && Storage::disk('public')->exists($venue->image)) {
-        Storage::disk('public')->delete($venue->image);
+        // Hapus admin yang memiliki venue_id sama
+        $admins = User::where('venue_id', $venue->id)->get();
+        foreach ($admins as $admin) {
+            // Hapus semua bookings milik admin, jika ada
+            Booking::where('user_id', $admin->id)->delete();
+            $admin->delete();
+        }
+
+        // Hapus gambar venue jika ada
+        if ($venue->image && Storage::disk('public')->exists($venue->image)) {
+            Storage::disk('public')->delete($venue->image);
+        }
+
+        // Ambil semua meja yang ada di venue ini
+        $tables = $venue->tables;
+
+        // Hapus semua bookings yang terkait dengan meja-meja ini
+        foreach ($tables as $table) {
+            $table->bookings()->delete(); // pastikan relasi bookings ada di model Table
+        }
+
+        // Hapus semua meja dari venue
+        $venue->tables()->delete();
+
+        // Hapus venue-nya
+        $venue->delete();
+
+        return redirect()->route('superadmin.venue.index')
+            ->with('success', 'Venue dan semua data terkait berhasil dihapus!');
     }
-
-    // Ambil semua meja yang ada di venue ini
-    $tables = $venue->tables;
-
-    // Hapus semua bookings yang terkait dengan meja-meja ini
-    foreach ($tables as $table) {
-        $table->bookings()->delete(); // pastikan relasi bookings ada di model Table
-    }
-
-    // Hapus semua meja dari venue
-    $venue->tables()->delete();
-
-    // Hapus venue-nya
-    $venue->delete();
-
-    return redirect()->route('superadmin.venue.index')
-        ->with('success', 'Venue berhasil dihapus!');
-}
-
 }
