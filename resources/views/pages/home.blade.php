@@ -13,66 +13,49 @@
             </div>
         </div>
 
-        <div class="flex flex-col md:flex-row lg:justify-center">
+        <form action="{{ route('home') }}" method="GET" class="flex flex-col md:flex-row lg:justify-center">
             <div class="mx-4 lg:mx-0 mb-5 flex items-center border border-gray-300 md:border-0 rounded-lg">
                 <span class="text-gray-500 px-3">
                     <i class="fas fa-search"></i>
                 </span>
-                <input type="text"
+                <input type="text" name="name"
                     class="border w-full border-gray-300 py-3 px-4 rounded-e-lg focus:outline-none focus:ring focus:ring-blue-200 text-sm text-gray-500"
-                    placeholder="Cari nama venue">
+                    placeholder="Cari nama venue" value="{{ request('name') }}">
             </div>
             <div class="mx-4 lg:mx-0 mb-5 flex items-center border border-gray-300 md:border-0 rounded-lg">
                 <span class="text-gray-500 px-3">
                     <i class="fas fa-location"></i>
                 </span>
-                <input type="text"
+                <input type="text" name="location"
                     class="border w-full border-gray-300 py-3 px-4 rounded-e-lg focus:outline-none focus:ring focus:ring-blue-200 text-sm text-gray-500"
-                    placeholder="Pilih Kota">
-            </div>
-            <div class="mx-4 lg:mx-0 mb-5 flex items-center border border-gray-300 md:border-0 rounded-lg">
-                <span class="text-gray-500 px-3">
-                    <i class="fa-solid fa-key"></i>
-                </span>
-                <input type="text"
-                    class="border w-full border-gray-300 py-3 px-4 rounded-e-lg focus:outline-none focus:ring focus:ring-blue-200 text-sm text-gray-500"
-                    placeholder="Billiard">
-            </div>
-            <div class="px-4 lg:ps-4 md:px-0 mb-5">
-                <button class="w-full py-3 md:px-4 rounded-lg bg-[#F2E3E5]">
-                    <i class="fa-solid fa-filter"></i>
-                </button>
+                    placeholder="Pilih Kota" value="{{ request('location') }}">
             </div>
             <div class="px-4">
-                <button
+                <button type="submit"
                     class="w-full py-3 md:px-6 rounded-lg text-sm bg-primary text-white font-semibold md:whitespace-nowrap">
                     <h6>Cari venue</h6>
                 </button>
             </div>
-        </div>
+        </form>
         <hr class="my-4 md:mx-4 lg:mx-44 bg-gray-500 hidden md:block">
         <div class="md:flex md:justify-between md:mb-14">
             <div class="px-4 lg:px-44 mt-6 md:mt-0 md:flex md:flex-row">
                 <h6 class="text-gray-400 text-sm">Menampilkan: </h6>
-                <p class="text-gray-400 text-sm">6</p>
-                <p class="text-gray-400 text-sm">venue tersedia</p>
+                <p class="text-gray-400 text-sm ml-1">{{ $venues->total() }}</p>
+                <p class="text-gray-400 text-sm ml-1">venue tersedia</p>
                 <hr class="my-4 md:my-0 bg-gray-500">
-            </div>
-            <div class="px-4 lg:px-44">
-                <p class="text-sm text-gray-400 mb-10 md:mb-0">Urutkan berdasarkan: <span class="text-gray-700">Harga
-                        terendah</span></p>
             </div>
         </div>
         <div class="px-4 lg:px-44">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @forelse ($venues as $venue)
-                    <a href="/venue/{{ ($venue->name) }}"
+                    <a href="{{ route('venue', ['venueName' => $venue->name]) }}"
                         class="flex flex-col h-full border border-gray-400 rounded-lg overflow-hidden">
                         <img src="{{ $venue->image }}" alt="{{ $venue->name }}" class="w-full h-48 object-cover">
                         <div class="flex-grow px-4 py-2">
                             <h3 class="text-sm text-gray-400 font-semibold mb-2">Venue</h3>
                             <h1 class="text-xl text-gray-800 font-semibold">{{ $venue->name }}</h1>
-                            <p class="text-sm text-gray-500">Genteng</p>
+                            <p class="text-sm text-gray-500">{{ $venue->address }}</p>
                             <p class="mt-10 text-gray-500 text-sm">Mulai:
                                 <span class="font-bold text-gray-800">Rp30,000</span>
                                 <span class="text-gray-400 font-thin text-sm">/ jam</span>
@@ -83,7 +66,11 @@
                     <p class="text-center col-span-full text-gray-500">Belum ada venue tersedia.</p>
                 @endforelse
             </div>
-        </div>
 
+            {{-- Pagination Links --}}
+            <div class="mt-4">
+                {{ $venues->links() }}
+            </div>
+        </div>
     </div>
 @endsection

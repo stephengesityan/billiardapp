@@ -36,6 +36,18 @@
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div>
+                            <label for="price_per_hour" class="block text-sm font-medium text-gray-700 mb-1">Price Per
+                                Hour</label>
+                            <input type="number" id="price_per_hour" name="price_per_hour"
+                                value="{{ old('price_per_hour', $table->price_per_hour) }}"
+                                placeholder="Masukkan merek meja"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('price_per_hour') border-red-500 @enderror">
+                            @error('price_per_hour')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <div>

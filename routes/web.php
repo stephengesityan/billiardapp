@@ -21,7 +21,7 @@ Auth::routes(['verify' => true]);
 // Rute custom untuk verifikasi email
 Route::get('/email/verified', [VerificationController::class, 'verified'])->name('verification.verified');
 
-Route::get('/', [HomeController::class, "index"])->name('index');
+Route::get('/', [HomeController::class, "index"])->name('home');
 Route::get('/venue/{venueName}', [VenueController::class, "venue"])->name('venue');
 
 // Changed routes for the new booking flow

@@ -56,6 +56,7 @@ class TableController extends Controller
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'status' => 'required|in:Available,Booked,Unavailable',
+            'price_per_hour' => 'required|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -68,6 +69,7 @@ class TableController extends Controller
             'name' => $request->name,
             'brand' => $request->brand,
             'status' => $request->status,
+            'price_per_hour' => $request->price_per_hour,
             'venue_id' => auth()->user()->venue_id,
         ]);
 
@@ -100,6 +102,7 @@ class TableController extends Controller
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'status' => 'required|in:Available,Booked,Unavailable',
+            'price_per_hour' => 'required|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -114,6 +117,7 @@ class TableController extends Controller
             'name' => $request->name,
             'brand' => $request->brand,
             'status' => $request->status,
+            'price_per_hour' => $request->price_per_hour,
         ]);
 
         return redirect()->route('admin.tables.index')
@@ -129,6 +133,9 @@ class TableController extends Controller
     public function destroy($id)
     {
         $table = Table::where('venue_id', auth()->user()->venue_id)->findOrFail($id);
+
+        $table->bookings()->delete();
+        
         $table->delete();
 
         return redirect()->route('admin.tables.index')
