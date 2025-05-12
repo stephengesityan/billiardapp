@@ -4,12 +4,11 @@
     <div class="contents h-screen">
         <div class="bg-primary py-5 md:py-10 mb-10 md:mb-16">
             <div>
-                <h1 class="text-xl md:text-4xl font-bold px-12 text-center text-white uppercase">BOOKING LAPANGAN ONLINE
+                <h1 class="text-xl md:text-4xl font-bold px-12 text-center text-white uppercase">APLIKASI BOOKING MEJA
                     TERBAIK</h1>
             </div>
             <div class="text-center mt-5">
-                <a href="https://ayo.co.id/ayo-venue-management"
-                    class="text-white bg-orange-400 py-2 px-4 rounded-lg font-semibold text-sm md:text-lg">Daftarkan
+                <a href="#" class="text-white bg-yellow-500 py-2 px-4 rounded-lg font-semibold text-sm md:text-lg">Daftarkan
                     Venue</a>
             </div>
         </div>

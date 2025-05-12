@@ -23,8 +23,8 @@
 <body class="font-poppins">
     <header class="fixed top-0 w-full bg-white shadow-sm z-50" x-data="{ showModal: false, modalType: '' }">
         <nav x-data="{ isMobileMenuOpen: false }" class="relative py-4 px-4 lg:px-44 flex items-center justify-between">
-            <a href="https://ayo.co.id">
-                <img src="{{ asset('images/ayo.png') }}" alt="Ayo Logo" class="w-24">
+            <a href="/">
+                <img src="{{ asset('images/carimeja3.png') }}" alt="carimeja.com" class="w-24">
             </a>
 
             <div class="flex items-center space-x-4">
@@ -251,7 +251,7 @@
     <footer class="bg-white text-gray-400 relative w-full pt-20">
         <div class="container mx-auto px-4 absolute bottom-5">
             <div class="text-center">
-                <p class="text-sm">&copy; 2025 Ayo Venue. All rights reserved.</p>
+                <p class="text-sm">&copy; 2025 Cari Meja. All rights reserved.</p>
             </div>
             <div class="text-center">
                 <a href="#" class="text-sm text-gray-400">Privacy Policy</a> |
