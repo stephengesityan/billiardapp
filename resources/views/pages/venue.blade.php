@@ -418,7 +418,12 @@
                     bookingEnd.setHours(bookingEnd.getHours() + parseInt(selectedDuration));
 
                     const endTimeFormatted = ('0' + bookingEnd.getHours()).slice(-2) + ':' + ('0' + bookingEnd.getMinutes()).slice(-2);
-                    const today = new Date().toISOString().split('T')[0];
+
+                    // PERUBAHAN DI SINI: Gunakan tanggal WIB dengan menambahkan offset +7 jam
+                    const nowUtc = new Date();
+                    const jakartaTime = new Date(nowUtc.getTime() + (7 * 60 * 60 * 1000));
+                    const today = jakartaTime.toISOString().split('T')[0];
+
                     const start_time = `${today} ${selectedTime}`;
                     const end_time = `${today} ${endTimeFormatted}`;
 
