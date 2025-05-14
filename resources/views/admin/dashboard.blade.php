@@ -107,12 +107,14 @@
                 </div>
             </div>
 
-            <!-- Charts Row 1 -->
+            <!-- Main Performance & Trends Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <!-- Weekly Bookings Chart -->
+                <!-- Monthly Revenue Chart - MOVED UP (was 6 months, now showing 12 months) -->
                 <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
-                    <h2 class="font-semibold text-lg mb-4">Booking Per Hari (7 Hari Terakhir)</h2>
-                    <div class="h-80" id="bookingsChart"></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-semibold text-lg">Tren Pendapatan Bulanan</h2>
+                    </div>
+                    <div class="h-80" id="monthlyRevenueChart"></div>
                 </div>
 
                 <!-- Recent Bookings -->
@@ -140,12 +142,10 @@
                                                 <p class="font-medium text-gray-800">{{ $booking->user->name }}</p>
                                                 <div class="flex items-center text-sm text-gray-500">
                                                     <span class="mr-2">{{ $booking->table->name }}</span>
-                                                    <span
-                                                        class="text-xs px-2 py-0.5 rounded-full {{ 
-                                                                                                                                                                    $booking->status === 'paid' ? 'bg-green-100 text-green-800' :
-                                ($booking->status === 'pending' ? 'bg-amber-100 text-amber-800' :
-                                    'bg-gray-100 text-gray-800') 
-                                                                                                                                                                }}">
+                                                    <span class="text-xs px-2 py-0.5 rounded-full {{ 
+                                                                        $booking->status === 'paid' ? 'bg-green-100 text-green-800' :
+                                ($booking->status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800') 
+                                                                    }}">
                                                         {{ ucfirst($booking->status) }}
                                                     </span>
                                                 </div>
@@ -161,26 +161,29 @@
                 </div>
             </div>
 
-            <!-- Charts Row 2 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <!-- Monthly Revenue Chart -->
+            <!-- Secondary Performance Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Weekly Revenue Chart -->
                 <div class="bg-white rounded-xl shadow-sm p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="font-semibold text-lg">Pendapatan 6 Bulan Terakhir</h2>
-                    </div>
-                    <div class="h-80" id="monthlyRevenueChart"></div>
+                    <h2 class="font-semibold text-lg mb-4">Pendapatan 7 Hari Terakhir</h2>
+                    <div class="h-80" id="weeklyRevenueChart"></div>
                 </div>
-            </div>
 
-            <!-- Charts Row 3 -->
-            <div class="grid grid-cols-1 gap-6">
-                <!-- Table Revenue Performance -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <!-- Table Revenue Performance - MOVED UP -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="font-semibold text-lg">Performa Pendapatan per Meja (Bulan Ini)</h2>
                     </div>
-                    <div class="h-96" id="tableRevenueChart"></div>
+                    <div class="h-80" id="tableRevenueChart"></div>
                 </div>
+            </div>
+
+            <!-- Customer Insights Section -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-semibold text-lg">Top 5 Pelanggan Loyal</h2>
+                </div>
+                <div class="h-80" id="topUsersChart"></div>
             </div>
         </div>
     </div>
@@ -189,67 +192,7 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                // Booking Chart
-                var bookingData = @json($lastWeekBookings);
-
-                var options = {
-                    series: [{
-                        name: 'Booking',
-                        data: bookingData.map(item => item.count)
-                    }],
-                    chart: {
-                        type: 'bar',
-                        height: 300,
-                        toolbar: {
-                            show: false
-                        }
-                    },
-                    plotOptions: {
-                        bar: {
-                            borderRadius: 4,
-                            columnWidth: '60%',
-                        }
-                    },
-                    colors: ['#3b82f6'],
-                    dataLabels: {
-                        enabled: false
-                    },
-                    xaxis: {
-                        categories: bookingData.map(item => item.date),
-                        axisBorder: {
-                            show: false
-                        }
-                    },
-                    yaxis: {
-                        title: {
-                            text: 'Jumlah Booking'
-                        },
-                        labels: {
-                            formatter: function (val) {
-                                return Math.floor(val);
-                            }
-                        }
-                    },
-                    fill: {
-                        opacity: 1
-                    },
-                    tooltip: {
-                        y: {
-                            formatter: function (val) {
-                                return val + " booking";
-                            }
-                        }
-                    },
-                    grid: {
-                        borderColor: '#f3f4f6',
-                        strokeDashArray: 5
-                    }
-                };
-
-                var chart = new ApexCharts(document.querySelector("#bookingsChart"), options);
-                chart.render();
-
-                // Monthly Revenue Chart
+                // Monthly Revenue Chart - ENHANCED TO SHOW 12 MONTHS
                 var monthlyRevenueData = @json($lastSixMonthsRevenue);
 
                 var monthlyRevenueOptions = {
@@ -319,129 +262,70 @@
                         colors: ['#10b981'],
                         strokeColor: '#fff',
                         strokeWidth: 2
+                    },
+                    title: {
+                        text: 'Tren Pendapatan Bulanan',
+                        align: 'center',
+                        style: {
+                            fontSize: '18px',
+                            fontWeight: 'medium'
+                        }
                     }
                 };
 
                 var monthlyRevenueChart = new ApexCharts(document.querySelector("#monthlyRevenueChart"), monthlyRevenueOptions);
                 monthlyRevenueChart.render();
 
-                // Table Revenue Performance Chart
-                var tableRevenueData = @json($tableRevenue);
+                // Weekly Revenue Chart
+                var weeklyRevenueData = @json($lastWeekRevenue);
 
-                var tableRevenueOptions = {
+                var options = {
                     series: [{
                         name: 'Pendapatan',
-                        data: tableRevenueData.map(item => item.table_revenue)
-                    }, {
-                        name: 'Jumlah Booking',
-                        data: tableRevenueData.map(item => item.booking_count)
+                        data: weeklyRevenueData.map(item => item.revenue)
                     }],
                     chart: {
                         type: 'bar',
-                        height: 350,
-                        stacked: false,
+                        height: 300,
                         toolbar: {
                             show: false
                         }
                     },
                     plotOptions: {
                         bar: {
-                            horizontal: true,
-                            barHeight: '70%',
-                            dataLabels: {
-                                position: 'top'
-                            }
+                            borderRadius: 4,
+                            columnWidth: '60%',
                         }
                     },
-                    colors: ['#f97316', '#3b82f6'],
+                    colors: ['#10b981'],
                     dataLabels: {
-                        enabled: true,
-                        formatter: function (val, opts) {
-                            if (opts.seriesIndex === 0) {
-                                return 'Rp' + val.toLocaleString('id-ID');
-                            } else {
-                                return val + ' booking';
-                            }
-                        },
-                        style: {
-                            fontSize: '12px',
-                            colors: ['#333']
-                        },
-                        offsetX: 0
-                    },
-                    stroke: {
-                        width: 1,
-                        colors: ['#fff']
+                        enabled: false
                     },
                     xaxis: {
-                        categories: tableRevenueData.map(item => item.table_name),
+                        categories: weeklyRevenueData.map(item => item.date),
+                        axisBorder: {
+                            show: false
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Pendapatan (Rp)'
+                        },
                         labels: {
                             formatter: function (val) {
-                                return val; // Simplified formatter for table names
+                                return 'Rp' + Math.floor(val).toLocaleString('id-ID');
                             }
                         }
                     },
-                    yaxis: [
-                        {
-                            axisTicks: {
-                                show: true,
-                            },
-                            axisBorder: {
-                                show: true,
-                                color: '#f97316'
-                            },
-                            labels: {
-                                style: {
-                                    colors: '#f97316',
-                                },
-                                formatter: function (val) {
-                                    return 'Rp' + val.toLocaleString('id-ID');
-                                }
-                            },
-                            title: {
-                                text: "Pendapatan (Rp)",
-                                style: {
-                                    color: '#f97316',
-                                }
-                            }
-                        },
-                        {
-                            opposite: true,
-                            axisTicks: {
-                                show: true,
-                            },
-                            axisBorder: {
-                                show: true,
-                                color: '#3b82f6'
-                            },
-                            labels: {
-                                style: {
-                                    colors: '#3b82f6',
-                                }
-                            },
-                            title: {
-                                text: "Jumlah Booking",
-                                style: {
-                                    color: '#3b82f6',
-                                }
-                            }
-                        }
-                    ],
+                    fill: {
+                        opacity: 1
+                    },
                     tooltip: {
                         y: {
-                            formatter: function (val, { seriesIndex }) {
-                                if (seriesIndex === 0) {
-                                    return 'Rp' + val.toLocaleString('id-ID');
-                                } else {
-                                    return val + ' booking';
-                                }
+                            formatter: function (val) {
+                                return 'Rp' + val.toLocaleString('id-ID');
                             }
                         }
-                    },
-                    legend: {
-                        position: 'top',
-                        horizontalAlign: 'left',
-                        offsetY: 10
                     },
                     grid: {
                         borderColor: '#f3f4f6',
@@ -449,8 +333,194 @@
                     }
                 };
 
-                var tableRevenueChart = new ApexCharts(document.querySelector("#tableRevenueChart"), tableRevenueOptions);
-                tableRevenueChart.render();
+                var chart = new ApexCharts(document.querySelector("#weeklyRevenueChart"), options);
+                chart.render();
+
+                // Table Revenue Performance Chart - ENHANCED WITH IMPROVED VISUALS
+                var tableRevenueData = @json($tableRevenue);
+
+                // Verifikasi data tersedia dan lengkap
+                if (!tableRevenueData || tableRevenueData.length === 0) {
+                    document.getElementById("tableRevenueChart").innerHTML =
+                        '<div class="flex items-center justify-center h-full"><p class="text-gray-500">Tidak ada data tersedia</p></div>';
+                } else {
+                    var tableRevenueOptions = {
+                        series: [{
+                            name: 'Pendapatan',
+                            data: tableRevenueData.map(item => item.table_revenue || 0)
+                        }, {
+                            name: 'Jumlah Booking',
+                            data: tableRevenueData.map(item => item.booking_count || 0)
+                        }],
+                        chart: {
+                            type: 'bar',
+                            height: 300,
+                            toolbar: {
+                                show: false
+                            }
+                        },
+                        plotOptions: {
+                            bar: {
+                                horizontal: false,
+                                columnWidth: '55%',
+                                endingShape: 'rounded'
+                            }
+                        },
+                        colors: ['#f97316', '#3b82f6'],
+                        dataLabels: {
+                            enabled: false
+                        },
+                        stroke: {
+                            show: true,
+                            width: 2,
+                            colors: ['transparent']
+                        },
+                        xaxis: {
+                            categories: tableRevenueData.map(item => item.table_name || 'Tidak ada nama')
+                        },
+                        yaxis: [
+                            {
+                                title: {
+                                    text: 'Pendapatan (Rp)'
+                                },
+                                labels: {
+                                    formatter: function (val) {
+                                        return 'Rp' + Math.floor(val).toLocaleString('id-ID');
+                                    }
+                                }
+                            },
+                            {
+                                opposite: true,
+                                title: {
+                                    text: 'Jumlah Booking'
+                                },
+                                labels: {
+                                    formatter: function (val) {
+                                        return Math.floor(val);
+                                    }
+                                }
+                            }
+                        ],
+                        tooltip: {
+                            y: {
+                                formatter: function (val, { seriesIndex }) {
+                                    if (seriesIndex === 0) {
+                                        return 'Rp' + val.toLocaleString('id-ID');
+                                    } else {
+                                        return val + ' booking';
+                                    }
+                                }
+                            }
+                        },
+                        fill: {
+                            opacity: 1
+                        },
+                        legend: {
+                            position: 'top',
+                            horizontalAlign: 'left'
+                        },
+                        title: {
+                            text: 'Analisis Performa Meja',
+                            align: 'center',
+                            style: {
+                                fontSize: '18px',
+                                fontWeight: 'medium'
+                            }
+                        }
+                    };
+
+                    var tableRevenueChart = new ApexCharts(document.querySelector("#tableRevenueChart"), tableRevenueOptions);
+                    tableRevenueChart.render();
+                }
+
+                // Top 5 Users Chart - ENHANCED WITH IMPROVED VISUALS
+                var topUsersData = @json($topUsers);
+
+                // Verifikasi data tersedia dan lengkap
+                if (!topUsersData || topUsersData.length === 0) {
+                    document.getElementById("topUsersChart").innerHTML =
+                        '<div class="flex items-center justify-center h-full"><p class="text-gray-500">Tidak ada data tersedia</p></div>';
+                } else {
+                    var topUsersOptions = {
+                        series: [{
+                            name: 'Jumlah Booking',
+                            data: topUsersData.map(item => item.booking_count)
+                        }],
+                        chart: {
+                            type: 'bar',
+                            height: 300,
+                            toolbar: {
+                                show: false
+                            }
+                        },
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 4,
+                                horizontal: true,
+                                distributed: true,
+                                dataLabels: {
+                                    position: 'top'
+                                }
+                            }
+                        },
+                        colors: ['#8b5cf6', '#6366f1', '#4f46e5', '#4338ca', '#3730a3'],
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function (val) {
+                                return val + ' booking';
+                            },
+                            style: {
+                                fontSize: '12px',
+                                colors: ['#304758']
+                            },
+                            offsetX: 30
+                        },
+                        xaxis: {
+                            categories: topUsersData.map(item => item.user_name),
+                            labels: {
+                                style: {
+                                    fontSize: '12px'
+                                }
+                            }
+                        },
+                        yaxis: {
+                            title: {
+                                text: 'Pelanggan'
+                            }
+                        },
+                        tooltip: {
+                            y: {
+                                formatter: function (val) {
+                                    return val + ' booking';
+                                }
+                            }
+                        },
+                        fill: {
+                            opacity: 1,
+                            type: 'gradient',
+                            gradient: {
+                                shade: 'dark',
+                                type: "horizontal",
+                                shadeIntensity: 0.5,
+                                inverseColors: true,
+                                opacityFrom: 1,
+                                opacityTo: 0.8,
+                                stops: [0, 100]
+                            }
+                        },
+                        title: {
+                            text: 'Pelanggan dengan Booking Terbanyak',
+                            align: 'center',
+                            style: {
+                                fontSize: '18px',
+                                fontWeight: 'medium'
+                            }
+                        }
+                    };
+
+                    var topUsersChart = new ApexCharts(document.querySelector("#topUsersChart"), topUsersOptions);
+                    topUsersChart.render();
+                }
             });
         </script>
     @endpush

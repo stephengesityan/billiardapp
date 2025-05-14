@@ -117,7 +117,7 @@
                         <span x-show="sidebarOpen">Daftar Booking</span>
                     </a>
                     <a href="{{ route('admin.revenues.index') }}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
+                        class="nav-item flex items-center px-3 py-2.5 rounded-lg {{ request()->routeIs('admin.revenues.*') ? 'active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

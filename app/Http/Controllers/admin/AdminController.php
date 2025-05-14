@@ -89,18 +89,23 @@ class AdminController extends Controller
             ->with(['user', 'table'])
             ->get();
 
-        // Menghitung data analitik untuk diagram booking 7 hari terakhir
-        $lastWeekBookings = [];
+        // Menghitung data analitik untuk diagram pendapatan 7 hari terakhir
+        $lastWeekRevenue = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
-            $count = Booking::whereDate('created_at', $date)
+            $dateStart = $date->copy()->startOfDay();
+            $dateEnd = $date->copy()->endOfDay();
+            
+            $dayRevenue = Booking::whereBetween('created_at', [$dateStart, $dateEnd])
                 ->whereHas('table', function ($query) use ($venue) {
                     $query->where('venue_id', $venue->id);
                 })
-                ->count();
-            $lastWeekBookings[] = [
+                ->where('status', 'paid')
+                ->sum('total_amount'); // Asumsikan terdapat kolom 'amount' yang menyimpan nilai pembayaran
+                
+            $lastWeekRevenue[] = [
                 'date' => $date->format('d/m'),
-                'count' => $count
+                'revenue' => (float)$dayRevenue // Pastikan revenue dikonversi ke float
             ];
         }
 
@@ -209,8 +214,41 @@ class AdminController extends Controller
             }
         }
 
-        // NEW: REMOVE REVENUE BY DAY OF WEEK
-        // Hapus bagian revenueByDay karena tidak diperlukan lagi
+        // NEW: TOP 5 USERS LEADERBOARD
+        // Ambil 5 pengguna dengan jumlah booking terbanyak dari 6 bulan terakhir
+        // Kecualikan users yang merupakan admin dari venue yang sedang dilihat
+        $topUsers = Booking::where('bookings.created_at', '>=', now()->subMonths(6))
+            ->whereHas('table', function ($query) use ($venue) {
+                $query->where('venue_id', $venue->id);
+            })
+            ->join('users', 'bookings.user_id', '=', 'users.id')
+            // Exclude users who are admins of this venue (venue_id matches current venue)
+            ->where(function($query) use ($venue) {
+                $query->whereNull('users.venue_id')
+                      ->orWhere('users.venue_id', '!=', $venue->id);
+            })
+            ->select(
+                'user_id',
+                DB::raw('users.name as user_name'),
+                DB::raw('COUNT(*) as booking_count'),
+                DB::raw('SUM(bookings.total_amount) as total_spent')
+            )
+            ->groupBy('user_id', 'users.name')
+            ->orderBy('booking_count', 'desc')
+            ->take(5)
+            ->get();
+            
+        // Jika tidak ada data, buat array kosong yang terstruktur
+        if ($topUsers->isEmpty()) {
+            $topUsers = collect([
+                [
+                    'user_id' => 1,
+                    'user_name' => 'Belum ada data',
+                    'booking_count' => 0,
+                    'total_spent' => 0
+                ]
+            ]);
+        }
 
         return view('admin.dashboard', compact(
             'venue',
@@ -225,9 +263,10 @@ class AdminController extends Controller
             'monthlyRevenue',
             'pendingBookings',
             'paidBookings',
-            'lastWeekBookings',
+            'lastWeekRevenue',
             'lastSixMonthsRevenue',
-            'tableRevenue'
+            'tableRevenue',
+            'topUsers'
             // Hapus 'revenueByDay' dari compact
         ));
     }
