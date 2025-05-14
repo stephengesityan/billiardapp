@@ -1,6 +1,4 @@
-@extends('layouts.main')
-@section('content')
-    <div class="min-h-96 mx-4 md:w-3/4 md:mx-auto py-8">
+@extends('layouts.main') @section('content') <div class="min-h-96 mx-4 md:w-3/4 md:mx-auto py-8">
         <h1 class="text-2xl font-bold mb-6">Riwayat Booking</h1>
 
         @if($bookings->isEmpty())
@@ -53,12 +51,30 @@
                                     <p class="text-sm text-gray-500">Metode Pembayaran</p>
                                     <p class="font-medium capitalize">{{ $booking->payment_method ?? '-' }}</p>
                                 </div>
+                                @if($booking->has_rescheduled)
+                                    <div class="col-span-2">
+                                        <p class="text-sm text-gray-500">Informasi Reschedule</p>
+                                        <p class="text-sm text-orange-600">
+                                            Booking ini telah di-reschedule dari tanggal
+                                            {{ \Carbon\Carbon::parse($booking->original_start_time)->format('d M Y') }} jam
+                                            {{ \Carbon\Carbon::parse($booking->original_start_time)->format('H:i') }} -
+                                            {{ \Carbon\Carbon::parse($booking->original_end_time)->format('H:i') }}
+                                        </p>
+                                    </div>
+                                @endif
                             </div>
 
                             @if($booking->start_time > now() && $booking->status == 'paid')
-                                <div class="mt-4 flex justify-end">
+                                <div class="mt-4 flex justify-end space-x-4">
                                     <a href="{{ route('venue', $booking->table->venue->name) }}"
                                         class="text-blue-500 hover:underline">Lihat Venue</a>
+
+                                    @if(!$booking->has_rescheduled && \Carbon\Carbon::parse($booking->start_time)->subHour() > now())
+                                        <a href="{{ route('booking.reschedule.form', $booking->id) }}"
+                                            class="text-orange-500 hover:underline">
+                                            Reschedule
+                                        </a>
+                                    @endif
                                 </div>
                             @endif
                         </div>

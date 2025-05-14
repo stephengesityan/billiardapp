@@ -57,6 +57,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/booking/pending/{id}/resume', [BookingController::class, 'resumeBooking'])->name('booking.resume');
     Route::delete('/booking/pending/{id}', [BookingController::class, 'deletePendingBooking'])->name('booking.pending.delete');
     
+    // Route Reschedule
+    Route::get('/booking/{id}/reschedule', [BookingController::class, 'showReschedule'])->name('booking.reschedule.form');
+    Route::post('/booking/{id}/reschedule', [BookingController::class, 'processReschedule'])->name('booking.reschedule.process');
+    Route::get('/booking/reschedule/check-availability', [BookingController::class, 'checkRescheduleAvailability'])->name('booking.reschedule.check-availability');
+
     // Routes that require password confirmation - moved account settings out of this group
     Route::middleware(['password.confirm'])->group(function () {
         // Any sensitive operations that should still require password confirmation can go here

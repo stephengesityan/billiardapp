@@ -480,4 +480,134 @@ class BookingController extends Controller
             ], 500);
         }
     }
+
+    public function showReschedule($id)
+{
+    $booking = Booking::with(['table.venue', 'table.venue.tables'])->findOrFail($id);
+    
+    // Check if user owns this booking
+    if ($booking->user_id !== auth()->id()) {
+        return redirect()->route('booking.history')->with('error', 'Anda tidak memiliki akses ke booking ini.');
+    }
+    
+    // Check if booking is upcoming and paid
+    if ($booking->start_time <= now() || $booking->status !== 'paid') {
+        return redirect()->route('booking.history')->with('error', 'Booking ini tidak dapat di-reschedule.');
+    }
+    
+    // Check if already rescheduled
+    if ($booking->has_rescheduled) {
+        return redirect()->route('booking.history')->with('error', 'Booking ini sudah pernah di-reschedule sebelumnya.');
+    }
+    
+    // Check if it's within the time limit (at least 1 hour before start)
+    $rescheduleDeadline = Carbon::parse($booking->start_time)->subHour();
+    if (now() > $rescheduleDeadline) {
+        return redirect()->route('booking.history')->with('error', 'Batas waktu reschedule telah berakhir (1 jam sebelum mulai).');
+    }
+    
+    // Get venue and tables data
+    $venue = $booking->table->venue;
+    
+    // Duration in hours
+    $duration = Carbon::parse($booking->start_time)->diffInHours($booking->end_time);
+    
+    return view('pages.reschedule', compact('booking', 'venue', 'duration'));
+}
+
+/**
+ * Process a reschedule request.
+ */
+public function processReschedule(Request $request, $id)
+{
+    $request->validate([
+        'table_id' => 'required|exists:tables,id',
+        'start_time' => 'required|date_format:Y-m-d H:i:s',
+        'end_time' => 'required|date_format:Y-m-d H:i:s|after:start_time',
+    ]);
+    
+    $booking = Booking::findOrFail($id);
+    
+    // Perform the same validation as in showReschedule
+    if ($booking->user_id !== auth()->id() || 
+        $booking->start_time <= now() || 
+        $booking->status !== 'paid' || 
+        $booking->has_rescheduled || 
+        now() > Carbon::parse($booking->start_time)->subHour()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Booking ini tidak dapat di-reschedule.'
+        ], 422);
+    }
+    
+    // Check if the selected time is available (except for this booking)
+    $existingBookings = Booking::where('table_id', $request->table_id)
+        ->where('id', '!=', $booking->id)
+        ->where('status', 'paid')
+        ->where(function ($query) use ($request) {
+            $query->where(function ($q) use ($request) {
+                $q->where('start_time', '<', $request->end_time)
+                  ->where('end_time', '>', $request->start_time);
+            });
+        })->count();
+    
+    if ($existingBookings > 0) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Jam yang dipilih sudah dibooking oleh orang lain.'
+        ], 422);
+    }
+    
+    // Store original booking details
+    $originalStartTime = $booking->start_time;
+    $originalEndTime = $booking->end_time;
+    $originalTableId = $booking->table_id;
+    
+    // Update the booking
+    $booking->original_start_time = $originalStartTime;
+    $booking->original_end_time = $originalEndTime;
+    $booking->original_table_id = $originalTableId;
+    $booking->start_time = $request->start_time;
+    $booking->end_time = $request->end_time;
+    $booking->table_id = $request->table_id;
+    $booking->has_rescheduled = true;
+    $booking->save();
+    
+    return response()->json([
+        'success' => true,
+        'message' => 'Booking berhasil di-reschedule.',
+        'redirect' => route('booking.history')
+    ]);
+}
+
+/**
+ * Check availability for reschedule.
+ */
+public function checkRescheduleAvailability(Request $request)
+{
+    $request->validate([
+        'table_id' => 'required|exists:tables,id',
+        'date' => 'required|date_format:Y-m-d',
+        'booking_id' => 'required|exists:bookings,id'
+    ]);
+    
+    $date = $request->date;
+    $tableId = $request->table_id;
+    $bookingId = $request->booking_id;
+    
+    // Get all bookings for this table on this date (excluding the current booking)
+    $bookings = Booking::where('table_id', $tableId)
+        ->where('id', '!=', $bookingId)
+        ->where('status', 'paid')
+        ->whereDate('start_time', $date)
+        ->get(['start_time', 'end_time'])
+        ->map(function ($booking) {
+            return [
+                'start' => Carbon::parse($booking->start_time)->format('H:i'),
+                'end' => Carbon::parse($booking->end_time)->format('H:i'),
+            ];
+        });
+    
+    return response()->json($bookings);
+}
 }
