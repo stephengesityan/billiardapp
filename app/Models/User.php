@@ -56,6 +56,17 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     
     /**
+     * Check if the user has a specific role.
+     *
+     * @param string $role
+     * @return bool
+     */
+    public function hasRole($role)
+    {
+        return $this->role === $role;
+    }
+    
+    /**
      * Get the venue that the admin belongs to.
      */
     public function venue()

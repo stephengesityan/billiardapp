@@ -7,6 +7,7 @@ use App\Http\Controllers\pages\BookingController;
 use App\Http\Controllers\pages\BookingHistoryController;
 use App\Http\Controllers\admin\BookingsController;
 use App\Http\Controllers\admin\TableController;
+use App\Http\Controllers\admin\RevenueController;
 use App\Http\Controllers\admin\AdminController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\superadmin\SuperAdminController;
@@ -81,6 +82,11 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->group(func
     Route::get('/tables/{id}/edit', [TableController::class, 'edit'])->name('admin.tables.edit');
     Route::put('/tables/{id}', [TableController::class, 'update'])->name('admin.tables.update');
     Route::delete('/tables/{id}', [TableController::class, 'destroy'])->name('admin.tables.destroy');
+
+    // CRUD routes untuk revenue
+    Route::get('/revenues', [RevenueController::class, 'index'])->name('admin.revenues.index');
+    Route::get('/revenues/detail/{tableId}', [RevenueController::class, 'detail'])->name('admin.revenues.detail');
+    Route::get('/revenues/export', [RevenueController::class, 'export'])->name('admin.revenues.export');
 });
 
 // Superadmin routes

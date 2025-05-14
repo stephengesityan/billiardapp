@@ -91,10 +91,8 @@
                             <img src="{{ asset('images/meja.jpg') }}" class="w-24">
                             <div class="ml-4">
                                 <h3 class="font-semibold">{{ $table['name'] }} ({{ $table['brand'] }})</h3>
-                                <p class="text-sm">
-                                    <span class="{{ $table['status'] == 'Available' ? 'text-green-600' : 'text-red-600' }}">
-                                        {{ $table['status'] }}
-                                    </span>
+                                <p class="text-sm font-semibold text-gray-500">
+                                    Rp. {{ number_format($table['price_per_hour'], 0, ',', '.') }} / jam
                                 </p>
                             </div>
                         </div>
@@ -156,7 +154,7 @@
 
         // Format functions for pending bookings
         function formatDateTime(dateTimeStr) {
-            // Parse the ISO date string without timezone conversion
+            // Parse the datetime string
             const parts = dateTimeStr.split(/[^0-9]/);
             const year = parseInt(parts[0]);
             const month = parseInt(parts[1]) - 1; // JS months are 0-based
@@ -164,16 +162,20 @@
             const hour = parseInt(parts[3]);
             const minute = parseInt(parts[4]);
 
+            // Gunakan zona waktu Asia/Jakarta (UTC+7)
+            // Tambahkan 7 jam untuk mengkonversi dari UTC ke WIB
+            const adjustedHour = (hour + 7) % 24;
+
             const dateFormatter = new Intl.DateTimeFormat('id-ID', {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric',
             });
 
-            // Format the date and time separately to avoid timezone issues
+            // Format the date and time separately
             const dateObj = new Date(year, month, day);
             return dateFormatter.format(dateObj) + ' ' +
-                (hour.toString().padStart(2, '0') + ':' +
+                (adjustedHour.toString().padStart(2, '0') + ':' +
                     minute.toString().padStart(2, '0'));
         }
 
@@ -183,8 +185,11 @@
             const hour = parseInt(parts[3]);
             const minute = parseInt(parts[4]);
 
-            // Format time manually to avoid timezone issues
-            return hour.toString().padStart(2, '0') + ':' +
+            // Tambahkan 7 jam untuk mengkonversi dari UTC ke WIB
+            const adjustedHour = (hour + 7) % 24;
+
+            // Format time manually
+            return adjustedHour.toString().padStart(2, '0') + ':' +
                 minute.toString().padStart(2, '0');
         }
 
@@ -399,10 +404,10 @@
                     selectedDateTime.setHours(selectedHour, selectedMinute, 0, 0);
 
                     // Uncomment this for production to prevent booking past times
-                    // if (selectedDateTime <= now) {
-                    //     alert('Jam yang dipilih sudah lewat. Silakan pilih jam yang masih tersedia.');
-                    //     return;
-                    // }
+                    if (selectedDateTime <= now) {
+                        alert('Jam yang dipilih sudah lewat. Silakan pilih jam yang masih tersedia.');
+                        return;
+                    }
 
                     this.isLoading = true;
 

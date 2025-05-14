@@ -24,7 +24,7 @@
                     <div class="w-full md:w-1/4">
                         <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Cari</label>
                         <div class="relative">
-                            <input type="text" name="search" id="search" placeholder="Cari user atau meja..." 
+                            <input type="text" name="search" id="search" placeholder="Cari user atau meja..."
                                 class="form-input w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                                 value="{{ request('search') }}">
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -35,24 +35,26 @@
 
                     <div class="w-full md:w-1/4">
                         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" id="status" class="form-select w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200">
+                        <select name="status" id="status"
+                            class="form-select w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200">
                             <option value="">Semua Status</option>
                             <option value="booked" {{ request('status') == 'booked' ? 'selected' : '' }}>Booked</option>
                             <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
+                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan
+                            </option>
                         </select>
                     </div>
 
                     <div class="w-full md:w-1/4">
                         <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
-                        <input type="date" name="date_from" id="date_from" 
+                        <input type="date" name="date_from" id="date_from"
                             class="form-input w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                             value="{{ request('date_from') }}">
                     </div>
 
                     <div class="w-full md:w-1/4">
                         <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
-                        <input type="date" name="date_to" id="date_to" 
+                        <input type="date" name="date_to" id="date_to"
                             class="form-input w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                             value="{{ request('date_to') }}">
                     </div>
@@ -82,8 +84,10 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'user', 'direction' => request('direction') == 'asc' && request('sort') == 'user' ? 'desc' : 'asc'])) }}" class="flex items-center">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'user', 'direction' => request('direction') == 'asc' && request('sort') == 'user' ? 'desc' : 'asc'])) }}"
+                                    class="flex items-center">
                                     User
                                     @if(request('sort') == 'user')
                                         <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} ml-1"></i>
@@ -92,8 +96,10 @@
                                     @endif
                                 </a>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'table', 'direction' => request('direction') == 'asc' && request('sort') == 'table' ? 'desc' : 'asc'])) }}" class="flex items-center">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'table', 'direction' => request('direction') == 'asc' && request('sort') == 'table' ? 'desc' : 'asc'])) }}"
+                                    class="flex items-center">
                                     Meja
                                     @if(request('sort') == 'table')
                                         <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} ml-1"></i>
@@ -102,8 +108,10 @@
                                     @endif
                                 </a>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'start_time', 'direction' => request('direction') == 'asc' && request('sort') == 'start_time' ? 'desc' : 'asc'])) }}" class="flex items-center">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'start_time', 'direction' => request('direction') == 'asc' && request('sort') == 'start_time' ? 'desc' : 'asc'])) }}"
+                                    class="flex items-center">
                                     Mulai
                                     @if(request('sort') == 'start_time')
                                         <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} ml-1"></i>
@@ -112,8 +120,10 @@
                                     @endif
                                 </a>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'end_time', 'direction' => request('direction') == 'asc' && request('sort') == 'end_time' ? 'desc' : 'asc'])) }}" class="flex items-center">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'end_time', 'direction' => request('direction') == 'asc' && request('sort') == 'end_time' ? 'desc' : 'asc'])) }}"
+                                    class="flex items-center">
                                     Selesai
                                     @if(request('sort') == 'end_time')
                                         <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} ml-1"></i>
@@ -122,19 +132,22 @@
                                     @endif
                                 </a>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'status', 'direction' => request('direction') == 'asc' && request('sort') == 'status' ? 'desc' : 'asc'])) }}" class="flex items-center">
+                            {{-- <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="{{ route('admin.bookings.index', array_merge(request()->all(), ['sort' => 'status', 'direction' => request('direction') == 'asc' && request('sort') == 'status' ? 'desc' : 'asc'])) }}"
+                                    class="flex items-center">
                                     Status
                                     @if(request('sort') == 'status')
-                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} ml-1"></i>
+                                    <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} ml-1"></i>
                                     @else
-                                        <i class="fas fa-sort ml-1 opacity-50"></i>
+                                    <i class="fas fa-sort ml-1 opacity-50"></i>
                                     @endif
                                 </a>
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </th> --}}
+                            {{-- <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Aksi
-                            </th>
+                            </th> --}}
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -143,7 +156,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-10 w-10">
-                                            <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($booking->user->name) }}&color=7F9CF5&background=EBF4FF" alt="">
+                                            <img class="h-10 w-10 rounded-full"
+                                                src="https://ui-avatars.com/api/?name={{ urlencode($booking->user->name) }}&color=7F9CF5&background=EBF4FF"
+                                                alt="">
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900">{{ $booking->user->name }}</div>
@@ -153,60 +168,72 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">{{ $booking->table->name }}</div>
-                                    <div class="text-sm text-gray-500">Kapasitas: {{ $booking->table->capacity }} orang</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}</div>
-                                    <div class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($booking->start_time)->format('d M Y') }}</div>
+                                    <div class="text-sm text-gray-900">
+                                        {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}</div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ \Carbon\Carbon::parse($booking->start_time)->format('d M Y') }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</div>
-                                    <div class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($booking->end_time)->format('d M Y') }}</div>
+                                    <div class="text-sm text-gray-900">
+                                        {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ \Carbon\Carbon::parse($booking->end_time)->format('d M Y') }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                {{-- <td class="px-6 py-4 whitespace-nowrap">
                                     @if($booking->status === 'booked')
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                            <i class="fas fa-clock mr-1"></i> Booked
-                                        </span>
+                                    <span
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        <i class="fas fa-clock mr-1"></i> Booked
+                                    </span>
                                     @elseif($booking->status === 'selesai')
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            <i class="fas fa-check mr-1"></i> Selesai
-                                        </span>
+                                    <span
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        <i class="fas fa-check mr-1"></i> Selesai
+                                    </span>
                                     @else
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                            <i class="fas fa-times mr-1"></i> Dibatalkan
-                                        </span>
+                                    <span
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        <i class="fas fa-times mr-1"></i> Dibatalkan
+                                    </span>
                                     @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                </td> --}}
+                                {{-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <div class="flex space-x-2">
-                                        <a href="{{ route('admin.bookings.show', $booking->id) }}" class="text-blue-600 hover:text-blue-900" title="Detail">
+                                        <a href="{{ route('admin.bookings.show', $booking->id) }}"
+                                            class="text-blue-600 hover:text-blue-900" title="Detail">
                                             <i class="fas fa-eye"></i>
                                         </a>
 
                                         @if($booking->status === 'booked')
-                                            <a href="{{ route('admin.bookings.edit', $booking->id) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit">
+                                            <a href="{{ route('admin.bookings.edit', $booking->id) }}"
+                                                class="text-yellow-600 hover:text-yellow-900" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
 
-                                            <form action="{{ route('admin.bookings.complete', $booking->id) }}" method="POST" class="inline">
+                                            <form action="{{ route('admin.bookings.complete', $booking->id) }}" method="POST"
+                                                class="inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="text-green-600 hover:text-green-900" title="Selesai" onclick="return confirm('Apakah anda yakin menyelesaikan booking ini?')">
+                                                <button type="submit" class="text-green-600 hover:text-green-900" title="Selesai"
+                                                    onclick="return confirm('Apakah anda yakin menyelesaikan booking ini?')">
                                                     <i class="fas fa-check-circle"></i>
                                                 </button>
                                             </form>
 
-                                            <form action="{{ route('admin.bookings.cancel', $booking->id) }}" method="POST" class="inline">
+                                            <form action="{{ route('admin.bookings.cancel', $booking->id) }}" method="POST"
+                                                class="inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="text-red-600 hover:text-red-900" title="Batalkan" onclick="return confirm('Apakah anda yakin membatalkan booking ini?')">
+                                                <button type="submit" class="text-red-600 hover:text-red-900" title="Batalkan"
+                                                    onclick="return confirm('Apakah anda yakin membatalkan booking ini?')">
                                                     <i class="fas fa-ban"></i>
                                                 </button>
                                             </form>
                                         @endif
                                     </div>
-                                </td>
+                                </td> --}}
                             </tr>
                         @empty
                             <tr>
@@ -226,7 +253,8 @@
             <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
                 <div class="flex items-center justify-between">
                     <div class="text-sm text-gray-500">
-                        Menampilkan {{ $bookings->firstItem() ?? 0 }} - {{ $bookings->lastItem() ?? 0 }} dari {{ $bookings->total() }} data
+                        Menampilkan {{ $bookings->firstItem() ?? 0 }} - {{ $bookings->lastItem() ?? 0 }} dari
+                        {{ $bookings->total() }} data
                     </div>
                     <div>
                         {{ $bookings->appends(request()->query())->links() }}
@@ -278,17 +306,17 @@
 
     @push('scripts')
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 // Date range validation
                 const dateFrom = document.getElementById('date_from');
                 const dateTo = document.getElementById('date_to');
 
                 if (dateFrom && dateTo) {
-                    dateFrom.addEventListener('change', function() {
+                    dateFrom.addEventListener('change', function () {
                         dateTo.min = dateFrom.value;
                     });
 
-                    dateTo.addEventListener('change', function() {
+                    dateTo.addEventListener('change', function () {
                         dateFrom.max = dateTo.value;
                     });
                 }

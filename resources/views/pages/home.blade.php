@@ -55,7 +55,7 @@
                         <div class="flex-grow px-4 py-2">
                             <h3 class="text-sm text-gray-400 font-semibold mb-2">Venue</h3>
                             <h1 class="text-xl text-gray-800 font-semibold">{{ $venue->name }}</h1>
-                            <p class="text-sm text-gray-500">{{ $venue->address }}</p>
+                            {{-- <p class="text-sm text-gray-500">{{ $venue->address }}</p> --}}
                             <p class="mt-10 text-gray-500 text-sm">Mulai:
                                 <span class="font-bold text-gray-800">Rp30,000</span>
                                 <span class="text-gray-400 font-thin text-sm">/ jam</span>

@@ -89,7 +89,8 @@
                         <div>
                             <p class="text-sm font-medium text-gray-500">Penggunaan Meja</p>
                             <p class="text-2xl font-bold text-gray-800">
-                                {{ $totalTables > 0 ? round(($usedTables / $totalTables) * 100) : 0 }}%</p>
+                                {{ $totalTables > 0 ? round(($usedTables / $totalTables) * 100) : 0 }}%
+                            </p>
                         </div>
                         <div class="text-amber-500 p-2 bg-amber-50 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -106,8 +107,8 @@
                 </div>
             </div>
 
-            <!-- Charts and Recent Bookings -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Charts Row 1 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <!-- Weekly Bookings Chart -->
                 <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
                     <h2 class="font-semibold text-lg mb-4">Booking Per Hari (7 Hari Terakhir)</h2>
@@ -139,11 +140,12 @@
                                                 <p class="font-medium text-gray-800">{{ $booking->user->name }}</p>
                                                 <div class="flex items-center text-sm text-gray-500">
                                                     <span class="mr-2">{{ $booking->table->name }}</span>
-                                                    <span class="text-xs px-2 py-0.5 rounded-full {{ 
-                                                                                    $booking->status === 'paid' ? 'bg-green-100 text-green-800' :
+                                                    <span
+                                                        class="text-xs px-2 py-0.5 rounded-full {{ 
+                                                                                                                                                                    $booking->status === 'paid' ? 'bg-green-100 text-green-800' :
                                 ($booking->status === 'pending' ? 'bg-amber-100 text-amber-800' :
                                     'bg-gray-100 text-gray-800') 
-                                                                                }}">
+                                                                                                                                                                }}">
                                                         {{ ucfirst($booking->status) }}
                                                     </span>
                                                 </div>
@@ -156,6 +158,28 @@
                             @endforeach
                         </div>
                     @endif
+                </div>
+            </div>
+
+            <!-- Charts Row 2 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Monthly Revenue Chart -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-semibold text-lg">Pendapatan 6 Bulan Terakhir</h2>
+                    </div>
+                    <div class="h-80" id="monthlyRevenueChart"></div>
+                </div>
+            </div>
+
+            <!-- Charts Row 3 -->
+            <div class="grid grid-cols-1 gap-6">
+                <!-- Table Revenue Performance -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-semibold text-lg">Performa Pendapatan per Meja (Bulan Ini)</h2>
+                    </div>
+                    <div class="h-96" id="tableRevenueChart"></div>
                 </div>
             </div>
         </div>
@@ -224,6 +248,209 @@
 
                 var chart = new ApexCharts(document.querySelector("#bookingsChart"), options);
                 chart.render();
+
+                // Monthly Revenue Chart
+                var monthlyRevenueData = @json($lastSixMonthsRevenue);
+
+                var monthlyRevenueOptions = {
+                    series: [{
+                        name: 'Pendapatan',
+                        data: monthlyRevenueData.map(item => item.revenue)
+                    }],
+                    chart: {
+                        type: 'area',
+                        height: 300,
+                        zoom: {
+                            enabled: false
+                        },
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        curve: 'smooth',
+                        width: 3
+                    },
+                    colors: ['#10b981'],
+                    xaxis: {
+                        categories: monthlyRevenueData.map(item => item.month),
+                        axisBorder: {
+                            show: false
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Pendapatan (Rp)'
+                        },
+                        labels: {
+                            formatter: function (val) {
+                                return 'Rp' + val.toLocaleString('id-ID');
+                            }
+                        }
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return 'Rp' + val.toLocaleString('id-ID');
+                            }
+                        }
+                    },
+                    fill: {
+                        type: 'gradient',
+                        gradient: {
+                            shade: 'light',
+                            type: "vertical",
+                            shadeIntensity: 0.4,
+                            inverseColors: false,
+                            opacityFrom: 0.8,
+                            opacityTo: 0.2,
+                            stops: [0, 100]
+                        }
+                    },
+                    grid: {
+                        borderColor: '#f3f4f6',
+                        strokeDashArray: 5
+                    },
+                    markers: {
+                        size: 5,
+                        colors: ['#10b981'],
+                        strokeColor: '#fff',
+                        strokeWidth: 2
+                    }
+                };
+
+                var monthlyRevenueChart = new ApexCharts(document.querySelector("#monthlyRevenueChart"), monthlyRevenueOptions);
+                monthlyRevenueChart.render();
+
+                // Table Revenue Performance Chart
+                var tableRevenueData = @json($tableRevenue);
+
+                var tableRevenueOptions = {
+                    series: [{
+                        name: 'Pendapatan',
+                        data: tableRevenueData.map(item => item.table_revenue)
+                    }, {
+                        name: 'Jumlah Booking',
+                        data: tableRevenueData.map(item => item.booking_count)
+                    }],
+                    chart: {
+                        type: 'bar',
+                        height: 350,
+                        stacked: false,
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            barHeight: '70%',
+                            dataLabels: {
+                                position: 'top'
+                            }
+                        }
+                    },
+                    colors: ['#f97316', '#3b82f6'],
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function (val, opts) {
+                            if (opts.seriesIndex === 0) {
+                                return 'Rp' + val.toLocaleString('id-ID');
+                            } else {
+                                return val + ' booking';
+                            }
+                        },
+                        style: {
+                            fontSize: '12px',
+                            colors: ['#333']
+                        },
+                        offsetX: 0
+                    },
+                    stroke: {
+                        width: 1,
+                        colors: ['#fff']
+                    },
+                    xaxis: {
+                        categories: tableRevenueData.map(item => item.table_name),
+                        labels: {
+                            formatter: function (val) {
+                                return val; // Simplified formatter for table names
+                            }
+                        }
+                    },
+                    yaxis: [
+                        {
+                            axisTicks: {
+                                show: true,
+                            },
+                            axisBorder: {
+                                show: true,
+                                color: '#f97316'
+                            },
+                            labels: {
+                                style: {
+                                    colors: '#f97316',
+                                },
+                                formatter: function (val) {
+                                    return 'Rp' + val.toLocaleString('id-ID');
+                                }
+                            },
+                            title: {
+                                text: "Pendapatan (Rp)",
+                                style: {
+                                    color: '#f97316',
+                                }
+                            }
+                        },
+                        {
+                            opposite: true,
+                            axisTicks: {
+                                show: true,
+                            },
+                            axisBorder: {
+                                show: true,
+                                color: '#3b82f6'
+                            },
+                            labels: {
+                                style: {
+                                    colors: '#3b82f6',
+                                }
+                            },
+                            title: {
+                                text: "Jumlah Booking",
+                                style: {
+                                    color: '#3b82f6',
+                                }
+                            }
+                        }
+                    ],
+                    tooltip: {
+                        y: {
+                            formatter: function (val, { seriesIndex }) {
+                                if (seriesIndex === 0) {
+                                    return 'Rp' + val.toLocaleString('id-ID');
+                                } else {
+                                    return val + ' booking';
+                                }
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                        horizontalAlign: 'left',
+                        offsetY: 10
+                    },
+                    grid: {
+                        borderColor: '#f3f4f6',
+                        strokeDashArray: 5
+                    }
+                };
+
+                var tableRevenueChart = new ApexCharts(document.querySelector("#tableRevenueChart"), tableRevenueOptions);
+                tableRevenueChart.render();
             });
         </script>
     @endpush

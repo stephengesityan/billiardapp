@@ -59,14 +59,12 @@
             <!-- Sidebar Header -->
             <div class="flex items-center justify-between h-16 px-4 border-b">
                 <div class="flex items-center space-x-2">
-                    <div class="p-2 bg-blue-600 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <span class="font-bold text-lg text-gray-800" x-show="sidebarOpen">VenueApp</span>
+                    <span class="font-bold text-lg text-gray-800" x-show="sidebarOpen">Admin</span>
+                    {{-- <div class="p-3 rounded-lg">
+                        <a href="/">
+                            <img src="{{ asset('images/carimeja3.png') }}" alt="carimeja.com" class="w-24">
+                        </a>
+                    </div> --}}
                 </div>
                 <button @click="sidebarOpen = !sidebarOpen" class="p-1 rounded-md hover:bg-gray-100 focus:outline-none">
                     <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500"
@@ -117,6 +115,15 @@
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span x-show="sidebarOpen">Daftar Booking</span>
+                    </a>
+                    <a href="{{ route('admin.revenues.index') }}"
+                        class="nav-item flex items-center px-3 py-2.5 rounded-lg {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span x-show="sidebarOpen">Revenues</span>
                     </a>
                 </nav>
 
