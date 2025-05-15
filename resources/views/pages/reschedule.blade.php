@@ -26,83 +26,81 @@
                 <p class="font-medium">{{ $duration }} Jam</p>
             </div>
         </div>
-        
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div class="flex items-start">
-                <div class="mr-3 text-yellow-500">
-                    <i class="fa-solid fa-exclamation-circle text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-yellow-700">Perhatian</h3>
-                    <p class="text-yellow-700 text-sm">
-                        • Reschedule hanya dapat dilakukan 1x untuk setiap booking<br>
-                        • Batas waktu reschedule adalah 1 jam sebelum jadwal booking<br>
-                        • Durasi booking akan tetap sama ({{ $duration }} jam)
-                    </p>
-                </div>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+            <div class="mr-3 text-yellow-500">
+                <i class="fa-solid fa-exclamation-circle text-xl"></i>
             </div>
-        </div>
-    </div>
-    
-    <div x-data="rescheduleForm" class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-lg font-semibold mb-4">Pilih Jadwal Baru</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Tanggal:</label>
-                <input type="date" x-model="selectedDate" class="w-full border p-2 rounded-lg" 
-                       :min="today" @change="dateChanged">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Meja:</label>
-                <select x-model="selectedTableId" class="w-full border p-2 rounded-lg" @change="tableChanged">
-                    <option value="">-- Pilih Meja --</option>
-                    <template x-for="table in tables" :key="table.id">
-                        <option :value="table.id" x-text="table.name + ' (' + table.brand + ')'"></option>
-                    </template>
-                </select>
-            </div>
-        </div>
-        
-        <div class="mt-6" x-show="selectedDate && selectedTableId">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Jam Mulai:</label>
-            <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                <template x-for="hour in availableHours" :key="hour">
-                    <button 
-                        class="py-2 px-1 rounded-lg text-sm font-medium transition duration-150"
-                        :class="isTimeSlotAvailable(hour) ? 
-                                (selectedStartHour === hour ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800') : 
-                                'bg-gray-200 text-gray-400 cursor-not-allowed opacity-70'"
-                        :disabled="!isTimeSlotAvailable(hour)"
-                        @click="selectStartHour(hour)"
-                        x-text="hour + ':00'">
-                    </button>
-                </template>
-            </div>
-            
-            <div class="mt-4" x-show="selectedStartHour">
-                <p class="text-sm text-gray-700 mb-2">
-                    Jadwal reschedule: <span class="font-medium" x-text="formattedSchedule"></span>
+                <h3 class="font-semibold text-yellow-700">Perhatian</h3>
+                <p class="text-yellow-700 text-sm">
+                    • Reschedule dapat dilakukan selama minimal 1 jam sebelum jadwal booking<br>
+                    • Durasi booking akan tetap sama ({{ $duration }} jam)<br>
+                    • Setelah reschedule, jadwal lama akan digantikan dengan jadwal baru
                 </p>
             </div>
-        </div>
-        
-        <div class="mt-8 flex justify-end">
-            <a href="{{ route('booking.history') }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg mr-3">
-                Batal
-            </a>
-            <button @click="submitReschedule" 
-                    :disabled="!canSubmit || isSubmitting"
-                    :class="canSubmit ? 'bg-green-500 hover:bg-green-600' : 'bg-green-300 cursor-not-allowed'"
-                    class="text-white px-4 py-2 rounded-lg">
-                <span x-show="!isSubmitting">Konfirmasi Reschedule</span>
-                <span x-show="isSubmitting">Memproses...</span>
-            </button>
         </div>
     </div>
 </div>
 
+<div x-data="rescheduleForm" class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-lg font-semibold mb-4">Pilih Jadwal Baru</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Tanggal:</label>
+            <input type="date" x-model="selectedDate" class="w-full border p-2 rounded-lg" 
+                   :min="today" @change="dateChanged">
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Meja:</label>
+            <select x-model="selectedTableId" class="w-full border p-2 rounded-lg" @change="tableChanged">
+                <option value="">-- Pilih Meja --</option>
+                <template x-for="table in tables" :key="table.id">
+                    <option :value="table.id" x-text="table.name + ' (' + table.brand + ')'"></option>
+                </template>
+            </select>
+        </div>
+    </div>
+    
+    <div class="mt-6" x-show="selectedDate && selectedTableId">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Jam Mulai:</label>
+        <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+            <template x-for="hour in availableHours" :key="hour">
+                <button 
+                    class="py-2 px-1 rounded-lg text-sm font-medium transition duration-150"
+                    :class="isTimeSlotAvailable(hour) ? 
+                            (selectedStartHour === hour ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800') : 
+                            'bg-gray-200 text-gray-400 cursor-not-allowed opacity-70'"
+                    :disabled="!isTimeSlotAvailable(hour)"
+                    @click="selectStartHour(hour)"
+                    x-text="hour + ':00'">
+                </button>
+            </template>
+        </div>
+        
+        <div class="mt-4" x-show="selectedStartHour">
+            <p class="text-sm text-gray-700 mb-2">
+                Jadwal reschedule: <span class="font-medium" x-text="formattedSchedule"></span>
+            </p>
+        </div>
+    </div>
+    
+    <div class="mt-8 flex justify-end">
+        <a href="{{ route('booking.history') }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg mr-3">
+            Batal
+        </a>
+        <button @click="submitReschedule" 
+                :disabled="!canSubmit || isSubmitting"
+                :class="canSubmit ? 'bg-green-500 hover:bg-green-600' : 'bg-green-300 cursor-not-allowed'"
+                class="text-white px-4 py-2 rounded-lg">
+            <span x-show="!isSubmitting">Konfirmasi Reschedule</span>
+            <span x-show="isSubmitting">Memproses...</span>
+        </button>
+    </div>
+</div>
+</div>
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('rescheduleForm', () => ({
@@ -110,6 +108,8 @@
             bookingId: {{ $booking->id }},
             bookingDuration: {{ $duration }},
             originalTableId: {{ $booking->table_id }},
+            originalStartTime: "{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}",
+            originalDate: "{{ \Carbon\Carbon::parse($booking->start_time)->format('Y-m-d') }}",
             selectedDate: '',
             selectedTableId: '',
             selectedStartHour: null,
@@ -124,9 +124,9 @@
                 const month = String(today.getMonth() + 1).padStart(2, '0');
                 const day = String(today.getDate()).padStart(2, '0');
                 this.today = `${year}-${month}-${day}`;
-                this.selectedDate = this.today;
                 
-                // Set original table as default
+                // Set original date and table as default
+                this.selectedDate = this.originalDate;
                 this.selectedTableId = this.originalTableId;
                 
                 // Load schedules for today and selected table
@@ -134,7 +134,13 @@
             },
             
             get canSubmit() {
-                return this.selectedDate && this.selectedTableId && this.selectedStartHour !== null;
+                return this.selectedDate && 
+                       this.selectedTableId && 
+                       this.selectedStartHour !== null && 
+                       // Prevent submitting if nothing changed
+                       (this.selectedDate !== this.originalDate || 
+                        this.selectedTableId != this.originalTableId || 
+                        this.selectedStartHour !== this.originalStartTime.split(':')[0]);
             },
             
             get formattedSchedule() {
@@ -161,9 +167,20 @@
                 
                 try {
                     const response = await fetch(`/booking/reschedule/check-availability?table_id=${this.selectedTableId}&date=${this.selectedDate}&booking_id=${this.bookingId}`);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
                     this.bookedSchedules = await response.json();
+                    
+                    // If today is the original booking date and table is the original table,
+                    // pre-select the original start hour
+                    if (this.selectedDate === this.originalDate && 
+                        parseInt(this.selectedTableId) === parseInt(this.originalTableId)) {
+                        this.selectedStartHour = this.originalStartTime.split(':')[0];
+                    }
                 } catch (error) {
                     console.error('Error checking booked schedules:', error);
+                    alert('Terjadi kesalahan saat memeriksa jadwal. Silakan coba lagi.');
                 }
             },
             
@@ -173,6 +190,15 @@
                 
                 // Check if slot end time exceeds midnight
                 if (endHourInt > 24) return false;
+                
+                // Check if this is the original booking's time slot (should be allowed)
+                const isOriginalTimeSlot = this.selectedDate === this.originalDate && 
+                                         parseInt(this.selectedTableId) === parseInt(this.originalTableId) && 
+                                         hour === this.originalStartTime.split(':')[0];
+                
+                if (isOriginalTimeSlot) {
+                    return true;
+                }
                 
                 // Check if any existing booking overlaps with this slot
                 return !this.bookedSchedules.some(schedule => {
