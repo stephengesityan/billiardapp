@@ -21,7 +21,10 @@
 </head>
 
 <body class="font-poppins">
-    <header class="fixed top-0 w-full bg-white shadow-sm z-50" x-data="{ showModal: false, modalType: '' }">
+    <header class="fixed top-0 w-full bg-white shadow-sm z-50" x-data="{ 
+        showModal: {{ $errors->any() || session('login_error') || session('register_error') ? 'true' : 'false' }}, 
+        modalType: '{{ session('login_error') ? 'login' : (session('register_error') ? 'register' : ($errors->any() ? (old('email') && !old('name') ? 'login' : 'register') : '')) }}' 
+    }">
         <nav x-data="{ isMobileMenuOpen: false }" class="relative py-4 px-4 lg:px-44 flex items-center justify-between">
             <a href="/">
                 <img src="{{ asset('images/carimeja3.png') }}" alt="carimeja.com" class="w-24">
@@ -116,120 +119,125 @@
                 </div>
         </nav>
 
-
-
         <!-- Modal -->
         <div x-show="showModal" x-cloak x-transition:enter="transition ease-out duration-300"
-    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 
-    <!-- Modal Box -->
-    <div @click.away="showModal = false" class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+            <!-- Modal Box -->
+            <div @click.away="showModal = false" class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
 
-        <button @click="showModal = false"
-            class="absolute top-3 right-4 text-gray-500 hover:text-gray-700 text-xl">
-            &times;
-        </button>
+                <button @click="showModal = false"
+                    class="absolute top-3 right-4 text-gray-500 hover:text-gray-700 text-xl">
+                    &times;
+                </button>
 
-        <template x-if="modalType === 'login'">
-            <div>
-                <h2 class="text-xl font-semibold mb-4">Masuk</h2>
-                
-                <!-- Error message for validation errors -->
-                @if($errors->any())
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-                    <ul>
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-                @endif
-                
-                <form method="POST" action="{{ route('login') }}" class="space-y-4">
-                    @csrf
-                    <input type="email" name="email" placeholder="Email" class="w-full border px-4 py-2 rounded"
-                        required>
-                    <input type="password" name="password" placeholder="Password"
-                        class="w-full border px-4 py-2 rounded" required>
+                <template x-if="modalType === 'login'">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">Masuk</h2>
 
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                        </div>
-                        <a href="{{ route('password.request') }}" class="text-sm text-primary hover:underline">
-                            Lupa Password?
-                        </a>
+                        <!-- Error message for login errors -->
+                        @if(session('login_error') || ($errors->any() && old('email') && !old('name')))
+                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                                @if(session('login_error'))
+                                    <p>{{ session('login_error') }}</p>
+                                @else
+                                    <ul>
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('login') }}" class="space-y-4">
+                            @csrf
+                            <input type="email" name="email" value="{{ old('email') }}" placeholder="Email"
+                                class="w-full border px-4 py-2 rounded" required>
+                            <input type="password" name="password" placeholder="Password"
+                                class="w-full border px-4 py-2 rounded" required>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                </div>
+                                <a href="{{ route('password.request') }}" class="text-sm text-primary hover:underline">
+                                    Lupa Password?
+                                </a>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Masuk</button>
+                        </form>
+                        <p class="text-sm mt-4 text-center">
+                            Belum punya akun?
+                            <button @click="modalType = 'register'" class="text-primary hover:underline">Daftar</button>
+                        </p>
                     </div>
+                </template>
 
-                    <button type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Masuk</button>
-                </form>
-                <p class="text-sm mt-4 text-center">
-                    Belum punya akun?
-                    <button @click="modalType = 'register'" class="text-primary hover:underline">Daftar</button>
-                </p>
-            </div>
-        </template>
+                <template x-if="modalType === 'register'">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">Daftar</h2>
 
-        <template x-if="modalType === 'register'">
-            <div>
-                <h2 class="text-xl font-semibold mb-4">Daftar</h2>
-                
-                <!-- Error message for validation errors -->
-                @if($errors->any())
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-                    <ul>
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-                @endif
-                
-                <form method="POST" action="{{ route('register') }}" class="space-y-4">
-                    @csrf
-                    <input type="text" name="name" placeholder="Nama Lengkap"
-                        class="w-full border px-4 py-2 rounded" required>
-                    <input type="email" name="email" placeholder="Email" class="w-full border px-4 py-2 rounded"
-                        required>
-                    <input type="password" name="password" placeholder="Password"
-                        class="w-full border px-4 py-2 rounded" required>
-                    <input type="password" name="password_confirmation" placeholder="Konfirmasi Password"
-                        class="w-full border px-4 py-2 rounded" required>
-                    <button type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Daftar</button>
-                </form>
-                <p class="text-sm mt-4 text-center">
-                    Sudah punya akun?
-                    <button @click="modalType = 'login'" class="text-primary hover:underline">Masuk</button>
-                </p>
+                        <!-- Error message for register errors -->
+                        @if(session('register_error') || ($errors->any() && old('name')))
+                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                                @if(session('register_error'))
+                                    <p>{{ session('register_error') }}</p>
+                                @else
+                                    <ul>
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('register') }}" class="space-y-4">
+                            @csrf
+                            <input type="text" name="name" value="{{ old('name') }}" placeholder="Nama Lengkap"
+                                class="w-full border px-4 py-2 rounded" required>
+                            <input type="email" name="email" value="{{ old('email') }}" placeholder="Email"
+                                class="w-full border px-4 py-2 rounded" required>
+                            <input type="password" name="password" placeholder="Password"
+                                class="w-full border px-4 py-2 rounded" required>
+                            <input type="password" name="password_confirmation" placeholder="Konfirmasi Password"
+                                class="w-full border px-4 py-2 rounded" required>
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Daftar</button>
+                        </form>
+                        <p class="text-sm mt-4 text-center">
+                            Sudah punya akun?
+                            <button @click="modalType = 'login'" class="text-primary hover:underline">Masuk</button>
+                        </p>
+                    </div>
+                </template>
             </div>
-        </template>
-    </div>
-</div>
+        </div>
     </header>
-
 
     <main class="pt-20">
         @if (session('success') || session('error'))
             <div id="floating-alert" style="
-                                                                            position: fixed;
-                                                                            top: 30px;
-                                                                            left: 50%;
-                                                                            transform: translateX(-50%);
-                                                                            background-color: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
-                                                                            color: {{ session('success') ? '#0f5132' : '#842029' }};
-                                                                            padding: 10px 20px;
-                                                                            border-radius: 6px;
-                                                                            font-size: 14px;
-                                                                            font-weight: 500;
-                                                                            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-                                                                            z-index: 9999;
-                                                                            max-width: 300px;
-                                                                            text-align: center;
-                                                                        ">
+                    position: fixed;
+                    top: 30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
+                    color: {{ session('success') ? '#0f5132' : '#842029' }};
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+                    z-index: 9999;
+                    max-width: 300px;
+                    text-align: center;
+                ">
                 {{ session('success') ?? session('error') }}
             </div>
 
