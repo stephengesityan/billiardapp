@@ -53,14 +53,13 @@ class VerificationController extends Controller
         $user = \App\Models\User::find($request->route('id'));
 
         if (!hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
-            return redirect()->route('verification.notice')
+            return redirect()->route('home')
                 ->with('error', 'Link verifikasi tidak valid.');
         }
 
         if ($user->hasVerifiedEmail()) {
-            return redirect()->route('login')
-                ->with('verified', true)
-                ->with('success', 'Email sudah terverifikasi sebelumnya. Silakan login.');
+            return redirect()->route('home')
+                ->with('verified', 'Email sudah terverifikasi sebelumnya. Silakan login.');
         }
 
         if ($user->markEmailAsVerified()) {
@@ -71,18 +70,44 @@ class VerificationController extends Controller
             auth()->logout();
         }
 
-        return redirect()->route('login')
-            ->with('verified', true)
-            ->with('success', 'Email berhasil diverifikasi. Silakan login.');
+        return redirect()->route('home')
+            ->with('verified', 'Email berhasil diverifikasi. Silakan login.');
     }
 
     /**
-     * Show the verification success page.
+     * Resend the email verification notification.
      *
-     * @return \Illuminate\Contracts\View\View
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function verified()
+    public function resend(Request $request)
     {
-        return view('auth.verified');
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->route('home');
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('resent', true)
+            ->with('success', 'Link verifikasi telah dikirim ulang ke alamat email Anda.');
+    }
+
+    /**
+     * Show the email verification notice.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\View\View
+     */
+    public function show(Request $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect($this->redirectPath());
+        }
+
+        // Redirect to homepage with message instead of showing verification.notice view
+        return redirect()->route('home')
+            ->with('error', 'Silakan verifikasi email Anda terlebih dahulu. 
+                Link verifikasi telah dikirim ke alamat email Anda.')
+            ->with('resend_link', true);
     }
 }

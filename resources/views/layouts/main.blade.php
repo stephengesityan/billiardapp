@@ -22,8 +22,8 @@
 
 <body class="font-poppins">
     <header class="fixed top-0 w-full bg-white shadow-sm z-50" x-data="{ 
-        showModal: {{ $errors->any() || session('login_error') || session('register_error') ? 'true' : 'false' }}, 
-        modalType: '{{ session('login_error') ? 'login' : (session('register_error') ? 'register' : ($errors->any() ? (old('email') && !old('name') ? 'login' : 'register') : '')) }}' 
+        showModal: {{ $errors->any() || session('login_error') || session('register_error') || session('verified') ? 'true' : 'false' }}, 
+        modalType: '{{ session('login_error') || session('verified') ? 'login' : (session('register_error') ? 'register' : ($errors->any() ? (old('email') && !old('name') ? 'login' : 'register') : '')) }}' 
     }">
         <nav x-data="{ isMobileMenuOpen: false }" class="relative py-4 px-4 lg:px-44 flex items-center justify-between">
             <a href="/">
@@ -143,6 +143,11 @@
                             <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
                                 @if(session('login_error'))
                                     <p>{{ session('login_error') }}</p>
+                                    @if(str_contains(session('login_error'), 'belum diverifikasi'))
+                                        <form method="POST" action="{{ route('verification.resend') }}" class="mt-2">
+                                            @csrf
+                                        </form>
+                                    @endif
                                 @else
                                     <ul>
                                         @foreach($errors->all() as $error)
@@ -221,24 +226,24 @@
     </header>
 
     <main class="pt-20">
-        @if (session('success') || session('error'))
+        @if (session('success') || session('error') || session('verified'))
             <div id="floating-alert" style="
-                    position: fixed;
-                    top: 30px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background-color: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
-                    color: {{ session('success') ? '#0f5132' : '#842029' }};
-                    padding: 10px 20px;
-                    border-radius: 6px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-                    z-index: 9999;
-                    max-width: 300px;
-                    text-align: center;
-                ">
-                {{ session('success') ?? session('error') }}
+                                                                                    position: fixed;
+                                                                                    top: 30px;
+                                                                                    left: 50%;
+                                                                                    transform: translateX(-50%);
+                                                                                    background-color: {{ session('success') || session('verified') ? '#d1e7dd' : '#f8d7da' }};
+                                                                                    color: {{ session('success') || session('verified') ? '#0f5132' : '#842029' }};
+                                                                                    padding: 10px 20px;
+                                                                                    border-radius: 6px;
+                                                                                    font-size: 14px;
+                                                                                    font-weight: 500;
+                                                                                    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+                                                                                    z-index: 9999;
+                                                                                    max-width: 300px;
+                                                                                    text-align: center;
+                                                                                ">
+                {{ session('success') ?? session('error') ?? session('verified') }}
             </div>
 
             <script>
@@ -250,6 +255,15 @@
                         setTimeout(() => alert.remove(), 500);
                     }
                 }, 3000);
+
+                // Jika ada pesan verified, buka modal login
+                @if(session('verified'))
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const alpineData = document.querySelector('header').__x.$data;
+                        alpineData.showModal = true;
+                        alpineData.modalType = 'login';
+                    });
+                @endif
             </script>
         @endif
 
