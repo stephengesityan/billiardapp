@@ -39,7 +39,8 @@ class ForgotPasswordController extends Controller
      */
     public function showLinkRequestForm()
     {
-        return view('auth.passwords.email');
+        // Redirect to home page with forgot_password modal flag
+        return redirect()->route('home')->with('status', 'Silahkan masukkan email Anda untuk mereset password.');
     }
 
     /**
@@ -73,8 +74,10 @@ class ForgotPasswordController extends Controller
      */
     protected function sendResetLinkResponse(Request $request, $response)
     {
-        session()->flash('success', trans($response));
-        return back();
+        // Return to home page with success message and keep the forgot_password modal open
+        return redirect()->route('home')
+                         ->with('status', trans($response))
+                         ->with('success', 'Link reset password telah dikirim ke email Anda.');
     }
 
     /**
@@ -86,8 +89,10 @@ class ForgotPasswordController extends Controller
      */
     protected function sendResetLinkFailedResponse(Request $request, $response)
     {
-        session()->flash('error', trans($response));
-        return back()
-                ->withInput($request->only('email'));
+        // Return to home page with error and keep the forgot_password modal open
+        return redirect()->route('home')
+                         ->withInput($request->only('email'))
+                         ->with('error', trans($response))
+                         ->with('status', 'Terjadi kesalahan. Silakan coba lagi.');
     }
 }

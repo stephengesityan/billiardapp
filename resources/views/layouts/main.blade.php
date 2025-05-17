@@ -22,9 +22,9 @@
 
 <body class="font-poppins">
     <header class="fixed top-0 w-full bg-white shadow-sm z-50" x-data="{ 
-        showModal: {{ $errors->any() || session('login_error') || session('register_error') || session('verified') ? 'true' : 'false' }}, 
-        modalType: '{{ session('login_error') || session('verified') ? 'login' : (session('register_error') ? 'register' : ($errors->any() ? (old('email') && !old('name') ? 'login' : 'register') : '')) }}' 
-    }">
+    showModal: {{ $errors->any() || session('login_error') || session('register_error') || session('verified') || session('status') || session('reset') || request()->has('token') ? 'true' : 'false' }}, 
+    modalType: '{{ session('reset') || request()->has('token') ? 'reset_password' : (session('status') ? 'forgot_password' : (session('login_error') || session('verified') ? 'login' : (session('register_error') ? 'register' : ($errors->any() ? (old('email') && !old('name') && !isset($request) ? 'login' : (request()->is('password/reset*') ? 'reset_password' : 'register')) : '')))) }}' 
+}">
         <nav x-data="{ isMobileMenuOpen: false }" class="relative py-4 px-4 lg:px-44 flex items-center justify-between">
             <a href="/">
                 <img src="{{ asset('images/carimeja3.png') }}" alt="carimeja.com" class="w-24">
@@ -134,6 +134,7 @@
                     &times;
                 </button>
 
+                <!-- Login Modal -->
                 <template x-if="modalType === 'login'">
                     <div>
                         <h2 class="text-xl font-semibold mb-4">Masuk</h2>
@@ -168,9 +169,10 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
                                 </div>
-                                <a href="{{ route('password.request') }}" class="text-sm text-primary hover:underline">
+                                <button type="button" @click="modalType = 'forgot_password'"
+                                    class="text-sm text-primary hover:underline">
                                     Lupa Password?
-                                </a>
+                                </button>
                             </div>
 
                             <button type="submit"
@@ -183,6 +185,7 @@
                     </div>
                 </template>
 
+                <!-- Register Modal -->
                 <template x-if="modalType === 'register'">
                     <div>
                         <h2 class="text-xl font-semibold mb-4">Daftar</h2>
@@ -210,6 +213,7 @@
                                 class="w-full border px-4 py-2 rounded" required>
                             <input type="password" name="password" placeholder="Password"
                                 class="w-full border px-4 py-2 rounded" required>
+                            <small class="px-4 text-gray-500">Password harus terdiri dari minimal 8 karakter.</small>
                             <input type="password" name="password_confirmation" placeholder="Konfirmasi Password"
                                 class="w-full border px-4 py-2 rounded" required>
                             <button type="submit"
@@ -221,28 +225,95 @@
                         </p>
                     </div>
                 </template>
+
+                <!-- Forgot Password Modal -->
+                <template x-if="modalType === 'forgot_password'">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">Lupa Password</h2>
+
+                        <!-- Success message -->
+                        @if(session('status'))
+                            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+                                <p>{{ session('status') }}</p>
+                            </div>
+                        @endif
+
+                        <!-- Error messages -->
+                        @if($errors->has('email'))
+                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                                <ul>
+                                    @foreach($errors->get('email') as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <p class="text-sm mb-4">Masukkan alamat email Anda dan kami akan mengirimkan link untuk atur
+                            ulang password.</p>
+
+                        <form method="POST" action="{{ route('password.email') }}" class="space-y-4">
+                            @csrf
+                            <input type="email" name="email" value="{{ old('email') }}" placeholder="Email"
+                                class="w-full border px-4 py-2 rounded" required>
+
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Kirim Link Reset
+                                Password</button>
+                        </form>
+
+                        <p class="text-sm mt-4 text-center">
+                            <button @click="modalType = 'login'" class="text-primary hover:underline">Kembali ke Halaman
+                                Login</button>
+                        </p>
+                    </div>
+                </template>
+
+                <!-- Reset Password Modal -->
+                <template x-if="modalType === 'reset_password'">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">Reset Password</h2>
+
+                        <!-- Error messages -->
+                        @if($errors->any())
+                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                                <ul>
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('password.update') }}" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="token"
+                                value="{{ request()->query('token') ?? request()->input('token') ?? old('token') }}">
+
+                            <input type="email" name="email" value="{{ request()->query('email') ?? old('email') }}"
+                                placeholder="Email" class="w-full border px-4 py-2 rounded" required>
+
+                            <input type="password" name="password" placeholder="Password Baru"
+                                class="w-full border px-4 py-2 rounded" required>
+                            <small class="px-4 text-gray-500">Password harus terdiri dari minimal 8 karakter.</small>
+
+                            <input type="password" name="password_confirmation" placeholder="Konfirmasi Password Baru"
+                                class="w-full border px-4 py-2 rounded" required>
+
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">Reset
+                                Password</button>
+                        </form>
+                    </div>
+                </template>
             </div>
         </div>
     </header>
 
     <main class="pt-20">
         @if (session('success') || session('error') || session('verified'))
-            <div id="floating-alert" style="
-                                                                                    position: fixed;
-                                                                                    top: 30px;
-                                                                                    left: 50%;
-                                                                                    transform: translateX(-50%);
-                                                                                    background-color: {{ session('success') || session('verified') ? '#d1e7dd' : '#f8d7da' }};
-                                                                                    color: {{ session('success') || session('verified') ? '#0f5132' : '#842029' }};
-                                                                                    padding: 10px 20px;
-                                                                                    border-radius: 6px;
-                                                                                    font-size: 14px;
-                                                                                    font-weight: 500;
-                                                                                    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-                                                                                    z-index: 9999;
-                                                                                    max-width: 300px;
-                                                                                    text-align: center;
-                                                                                ">
+            <div id="floating-alert"
+                style="position: fixed;top: 30px;left: 50%;transform: translateX(-50%);background-color: {{ session('success') || session('verified') ? '#d1e7dd' : '#f8d7da' }};color: {{ session('success') || session('verified') ? '#0f5132' : '#842029' }};padding: 10px 20px;border-radius: 6px;font-size: 14px;font-weight: 500;box-shadow: 0 3px 10px rgba(0,0,0,0.15);z-index: 9999;max-width: 300px;text-align: center">
                 {{ session('success') ?? session('error') ?? session('verified') }}
             </div>
 
@@ -282,5 +353,37 @@
         </div>
     </footer>
 </body>
+
+<script>
+    // Function to get URL parameters
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    // When the page loads, check for token and email in URL parameters
+    document.addEventListener('DOMContentLoaded', function () {
+        const token = getUrlParameter('token');
+        const email = getUrlParameter('email');
+
+        if (token && email) {
+            // Set the form values
+            setTimeout(() => {
+                const tokenInput = document.querySelector('input[name="token"]');
+                const emailInput = document.querySelector('input[name="email"]');
+
+                if (tokenInput) tokenInput.value = token;
+                if (emailInput) emailInput.value = email;
+
+                // Open the reset password modal
+                const alpineData = document.querySelector('header').__x.$data;
+                alpineData.showModal = true;
+                alpineData.modalType = 'reset_password';
+            }, 100);
+        }
+    });
+</script>
 
 </html>

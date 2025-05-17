@@ -88,12 +88,12 @@ class LoginController extends Controller
         
         if ($user && !$user->hasVerifiedEmail()) {
             return redirect()->route('home')
-                ->with('login_error', 'Email belum diverifikasi. Silakan periksa email Anda untuk link verifikasi atau klik resend untuk mengirim ulang.')
+                ->with('login_error', 'Email belum diverifikasi. Silakan periksa email Anda untuk link verifikasi.')
                 ->withInput($request->only('email'));
         }
 
         return redirect()->route('home')
-            ->with('login_error', 'Kredensial yang Anda masukkan tidak valid.')
+            ->with('login_error', 'Email atau password yang anda masukkan salah.')
             ->withInput($request->only('email'));
     }
 
