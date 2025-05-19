@@ -1,120 +1,282 @@
 @extends('layouts.super-admin')
 
 @section('content')
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">Dashboard Super Admin</h1>
-        <p class="text-gray-600">Selamat datang di panel kontrol Super Admin</p>
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Dashboard Super Admin
+        </h1>
+        <p class="text-gray-600 text-lg">Analytics & Overview dari seluruh venue</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">
-                    <i class="fas fa-users-cog mr-2 text-blue-600"></i>Admin
-                </h2>
-                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full">
-                    Total: {{ $adminCount ?? 0 }}
-                </span>
+    <!-- Main Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium">Total Admin</p>
+                    <p class="text-3xl font-bold">{{ $adminCount ?? 0 }}</p>
+                </div>
+                <div class="bg-blue-400 bg-opacity-30 rounded-full p-3">
+                    <i class="fas fa-users-cog text-2xl"></i>
+                </div>
             </div>
-            <p class="text-gray-600 mb-4">Kelola semua admin venue dalam sistem</p>
-            <a href="{{ route('superadmin.admin.index') }}"
-                class="inline-flex items-center text-blue-600 hover:text-blue-800">
-                Lihat Detail
-                <i class="fas fa-arrow-right ml-2"></i>
-            </a>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">
-                    <i class="fas fa-building mr-2 text-green-600"></i>Venue
-                </h2>
-                <span class="bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full">
-                    Total: {{ $venueCount ?? 0 }}
-                </span>
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-emerald-100 text-sm font-medium">Total Venue</p>
+                    <p class="text-3xl font-bold">{{ $venueCount ?? 0 }}</p>
+                </div>
+                <div class="bg-emerald-400 bg-opacity-30 rounded-full p-3">
+                    <i class="fas fa-building text-2xl"></i>
+                </div>
             </div>
-            <p class="text-gray-600 mb-4">Kelola semua venue dalam sistem</p>
-            <a href="{{ route('superadmin.venue.index') }}"
-                class="inline-flex items-center text-green-600 hover:text-green-800">
-                Lihat Detail
-                <i class="fas fa-arrow-right ml-2"></i>
-            </a>
         </div>
-    </div>
 
-    <!-- Recent Activity Section -->
-    <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
-        <div class="border-b border-gray-200 px-6 py-4">
-            <h3 class="text-lg font-semibold text-gray-800">Aktivitas Terbaru</h3>
+        <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-amber-100 text-sm font-medium">Total User</p>
+                    <p class="text-3xl font-bold">{{ $userCount ?? 0 }}</p>
+                </div>
+                <div class="bg-amber-400 bg-opacity-30 rounded-full p-3">
+                    <i class="fas fa-users text-2xl"></i>
+                </div>
+            </div>
         </div>
-        <div class="p-6">
-            <div class="space-y-4">
-                <!-- Sample activity items - in production, these would come from database -->
-                <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                        <i class="fas fa-user-plus"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-900">Admin baru ditambahkan</p>
-                        <p class="text-xs text-gray-500">2 jam yang lalu</p>
-                    </div>
+
+        <div class="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-purple-100 text-sm font-medium">Total Meja</p>
+                    <p class="text-3xl font-bold">{{ $tableCount ?? 0 }}</p>
                 </div>
-                <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-900">Venue baru ditambahkan</p>
-                        <p class="text-xs text-gray-500">1 hari yang lalu</p>
-                    </div>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
-                        <i class="fas fa-edit"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-900">Venue diperbarui</p>
-                        <p class="text-xs text-gray-500">2 hari yang lalu</p>
-                    </div>
+                <div class="bg-purple-400 bg-opacity-30 rounded-full p-3">
+                    <i class="fas fa-table text-2xl"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="rounded-full bg-blue-100 p-3">
-                    <i class="fas fa-users text-blue-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <h4 class="text-gray-500 text-sm">Total Pengguna</h4>
-                    <p class="text-2xl font-bold text-gray-800">{{ $userCount ?? 0 }}</p>
-                </div>
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Revenue Comparison Chart -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
+                <h3 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Revenue Bulan Ini
+                </h3>
+                <p class="text-indigo-100 text-sm">Per venue - {{ Carbon\Carbon::now()->format('F Y') }}</p>
+            </div>
+            <div class="p-6">
+                <canvas id="revenueChart" width="400" height="300"></canvas>
             </div>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="rounded-full bg-green-100 p-3">
-                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <h4 class="text-gray-500 text-sm">Venue Aktif</h4>
-                    <p class="text-2xl font-bold text-gray-800">{{ $activeVenueCount ?? 0 }}</p>
-                </div>
+
+        <!-- Popular Venues Ranking -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-pink-500 to-rose-600 px-6 py-4">
+                <h3 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-trophy mr-3"></i>
+                    Ranking Popularitas
+                </h3>
+                <p class="text-pink-100 text-sm">Venue terpopuler bulan ini</p>
             </div>
-        </div>
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="rounded-full bg-purple-100 p-3">
-                    <i class="fas fa-table text-purple-600 text-xl"></i>
+            <div class="p-6">
+                <!-- Filter Toggle -->
+                <div class="mb-4">
+                    <div class="bg-gray-100 rounded-lg p-1 flex">
+                        <button 
+                            id="rankingByBookings" 
+                            class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 bg-rose-500 text-white"
+                            onclick="toggleRanking('bookings')">
+                            <i class="fas fa-calendar-check mr-2"></i>
+                            Total Booking
+                        </button>
+                        <button 
+                            id="rankingByRevenue" 
+                            class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800"
+                            onclick="toggleRanking('revenue')">
+                            <i class="fas fa-money-bill-wave mr-2"></i>
+                            Total Revenue
+                        </button>
+                    </div>
                 </div>
-                <div class="ml-4">
-                    <h4 class="text-gray-500 text-sm">Total Meja</h4>
-                    <p class="text-2xl font-bold text-gray-800">{{ $tableCount ?? 0 }}</p>
-                </div>
+                <canvas id="popularVenuesChart" width="400" height="300"></canvas>
             </div>
         </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // Revenue Chart Data
+        const revenueData = @json($revenueData);
+        
+        // Popular Venues Data
+        const popularVenuesData = @json($popularVenuesData);
+
+        // Color Palettes
+        const revenueColors = [
+            'rgba(99, 102, 241, 0.8)',  // Indigo
+            'rgba(168, 85, 247, 0.8)',  // Purple  
+            'rgba(236, 72, 153, 0.8)',  // Pink
+            'rgba(34, 197, 94, 0.8)',   // Emerald
+            'rgba(251, 146, 60, 0.8)',  // Orange
+        ];
+
+        const rankingColors = [
+            'rgba(239, 68, 68, 0.8)',   // Red
+            'rgba(245, 158, 11, 0.8)',  // Amber
+            'rgba(34, 197, 94, 0.8)',   // Emerald
+            'rgba(59, 130, 246, 0.8)',  // Blue
+            'rgba(168, 85, 247, 0.8)',  // Purple
+        ];
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: revenueData.map(item => item.venue_name),
+                datasets: [{
+                    label: 'Revenue (Rp)',
+                    data: revenueData.map(item => parseFloat(item.total_revenue)),
+                    backgroundColor: revenueColors,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Revenue: Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.x);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Rp ' + new Intl.NumberFormat('id-ID', { 
+                                    notation: 'compact', 
+                                    maximumFractionDigits: 1 
+                                }).format(value);
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Popular Venues Chart
+        const popularCtx = document.getElementById('popularVenuesChart').getContext('2d');
+        let popularChart;
+
+        function createPopularChart(sortBy) {
+            const sortedData = [...popularVenuesData].sort((a, b) => {
+                if (sortBy === 'revenue') {
+                    return parseFloat(b.total_revenue) - parseFloat(a.total_revenue);
+                } else {
+                    return parseInt(b.total_bookings) - parseInt(a.total_bookings);
+                }
+            });
+
+            const chartData = {
+                labels: sortedData.map(item => item.venue_name),
+                datasets: [{
+                    label: sortBy === 'revenue' ? 'Revenue (Rp)' : 'Total Booking',
+                    data: sortedData.map(item => sortBy === 'revenue' ? parseFloat(item.total_revenue) : parseInt(item.total_bookings)),
+                    backgroundColor: rankingColors,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            };
+
+            if (popularChart) {
+                popularChart.destroy();
+            }
+
+            popularChart = new Chart(popularCtx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (sortBy === 'revenue') {
+                                        return 'Revenue: Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.x);
+                                    } else {
+                                        return 'Total Booking: ' + context.parsed.x;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if (sortBy === 'revenue') {
+                                        return 'Rp ' + new Intl.NumberFormat('id-ID', { 
+                                            notation: 'compact', 
+                                            maximumFractionDigits: 1 
+                                        }).format(value);
+                                    } else {
+                                        return value;
+                                    }
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize popular venues chart
+        createPopularChart('bookings');
+
+        // Toggle function for ranking chart
+        function toggleRanking(type) {
+            const bookingBtn = document.getElementById('rankingByBookings');
+            const revenueBtn = document.getElementById('rankingByRevenue');
+
+            if (type === 'bookings') {
+                bookingBtn.className = 'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 bg-rose-500 text-white';
+                revenueBtn.className = 'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800';
+                createPopularChart('bookings');
+            } else {
+                revenueBtn.className = 'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 bg-rose-500 text-white';
+                bookingBtn.className = 'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 text-gray-600 hover:text-gray-800';
+                createPopularChart('revenue');
+            }
+        }
+    </script>
 @endsection
