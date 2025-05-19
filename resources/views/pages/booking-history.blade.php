@@ -69,12 +69,10 @@
                                     <a href="{{ route('venue', $booking->table->venue->name) }}"
                                         class="text-blue-500 hover:underline">Lihat Venue</a>
 
-                                    @if(!$booking->has_rescheduled && \Carbon\Carbon::parse($booking->start_time)->subHour() > now())
-                                        <a href="{{ route('booking.reschedule.form', $booking->id) }}"
-                                            class="text-orange-500 hover:underline">
-                                            Reschedule
-                                        </a>
-                                    @endif
+                                    <a href="{{ route('booking.reschedule.form', $booking->id) }}"
+                                        class="text-orange-500 hover:underline">
+                                        Reschedule
+                                    </a>
                                 </div>
                             @endif
                         </div>

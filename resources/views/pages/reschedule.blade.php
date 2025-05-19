@@ -35,6 +35,7 @@
                 <h3 class="font-semibold text-yellow-700">Perhatian</h3>
                 <p class="text-yellow-700 text-sm">
                     • Reschedule dapat dilakukan selama minimal 1 jam sebelum jadwal booking<br>
+                    • Setiap booking hanya dapat di-reschedule maksimal 1 kali<br>
                     • Durasi booking akan tetap sama ({{ $duration }} jam)<br>
                     • Setelah reschedule, jadwal lama akan digantikan dengan jadwal baru
                 </p>

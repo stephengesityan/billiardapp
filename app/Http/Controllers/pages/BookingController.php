@@ -494,6 +494,11 @@ class BookingController extends Controller
         if ($booking->start_time <= now() || $booking->status !== 'paid') {
             return redirect()->route('booking.history')->with('error', 'Booking ini tidak dapat di-reschedule.');
         }
+
+        // Check if booking has reached reschedule limit
+        if ($booking->reschedule_count >= 1) {
+            return redirect()->route('booking.history')->with('error', 'Booking ini sudah pernah di-reschedule sebelumnya dan tidak dapat di-reschedule lagi.');
+        }
         
         // Check if it's within the time limit (at least 1 hour before start)
         $rescheduleDeadline = Carbon::parse($booking->start_time)->subHour();
@@ -557,6 +562,9 @@ class BookingController extends Controller
         $booking->end_time = $request->end_time;
         $booking->table_id = $request->table_id;
         $booking->save();
+
+        // Increment reschedule count
+        $booking->increment('reschedule_count');
         
         return response()->json([
             'success' => true,
