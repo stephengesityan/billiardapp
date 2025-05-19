@@ -173,10 +173,13 @@
                     this.bookedSchedules = await response.json();
                     
                     // If today is the original booking date and table is the original table,
-                    // pre-select the original start hour
+                    // pre-select the original start hour (only if it's still valid)
                     if (this.selectedDate === this.originalDate && 
                         parseInt(this.selectedTableId) === parseInt(this.originalTableId)) {
-                        this.selectedStartHour = this.originalStartTime.split(':')[0];
+                        const originalHour = this.originalStartTime.split(':')[0];
+                        if (this.isTimeSlotAvailable(originalHour)) {
+                            this.selectedStartHour = originalHour;
+                        }
                     }
                 } catch (error) {
                     console.error('Error checking booked schedules:', error);
@@ -191,12 +194,30 @@
                 // Check if slot end time exceeds midnight
                 if (endHourInt > 24) return false;
                 
-                // Check if this is the original booking's time slot (should be allowed)
+                // Check if selected date is today and hour has passed
+                const selectedDate = new Date(this.selectedDate);
+                const today = new Date();
+                const isToday = selectedDate.toDateString() === today.toDateString();
+                
+                if (isToday) {
+                    const currentHour = today.getHours();
+                    // If the selected hour has already passed today, disable it
+                    if (hourInt <= currentHour) {
+                        return false;
+                    }
+                }
+                
+                // Check if this is the original booking's time slot
                 const isOriginalTimeSlot = this.selectedDate === this.originalDate && 
                                          parseInt(this.selectedTableId) === parseInt(this.originalTableId) && 
                                          hour === this.originalStartTime.split(':')[0];
                 
                 if (isOriginalTimeSlot) {
+                    // Allow original time slot only if it's not in the past
+                    if (isToday) {
+                        const currentHour = today.getHours();
+                        return hourInt > currentHour;
+                    }
                     return true;
                 }
                 
