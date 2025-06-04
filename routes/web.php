@@ -9,6 +9,7 @@ use App\Http\Controllers\admin\BookingsController;
 use App\Http\Controllers\admin\TableController;
 use App\Http\Controllers\admin\RevenueController;
 use App\Http\Controllers\admin\AdminController;
+use App\Http\Controllers\admin\VenueController as AdminVenueController; // Import admin venue controller
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\superadmin\SuperAdminController;
 use App\Http\Controllers\superadmin\AdminManagementController;
@@ -72,6 +73,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Admin routes (admin tetap perlu verified untuk keamanan)
 Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
+    
+    // Booking management routes
     Route::get('/bookings', [BookingsController::class, 'index'])->name('admin.bookings.index');
     Route::get('/bookings/export', [BookingsController::class, 'export'])->name('admin.bookings.export');
     Route::get('/bookings/{id}', [BookingsController::class, 'show'])->name('admin.bookings.show');
@@ -80,7 +83,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->group(func
     Route::patch('/bookings/{id}/complete', [BookingsController::class, 'complete'])->name('admin.bookings.complete');
     Route::patch('/bookings/{id}/cancel', [BookingsController::class, 'cancel'])->name('admin.bookings.cancel');
     
-    // CRUD routes untuk manajemen meja
+    // Table management routes
     Route::get('/tables', [TableController::class, 'index'])->name('admin.tables.index');
     Route::get('/tables/create', [TableController::class, 'create'])->name('admin.tables.create');
     Route::post('/tables', [TableController::class, 'store'])->name('admin.tables.store');
@@ -88,7 +91,12 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->group(func
     Route::put('/tables/{id}', [TableController::class, 'update'])->name('admin.tables.update');
     Route::delete('/tables/{id}', [TableController::class, 'destroy'])->name('admin.tables.destroy');
 
-    // CRUD routes untuk revenue
+    // Venue management routes
+    Route::get('/venue', [AdminVenueController::class, 'index'])->name('admin.venue.index');
+    Route::get('/venue/edit', [AdminVenueController::class, 'edit'])->name('admin.venue.edit');
+    Route::put('/venue/update', [AdminVenueController::class, 'update'])->name('admin.venue.update');
+
+    // Revenue management routes
     Route::get('/revenues', [RevenueController::class, 'index'])->name('admin.revenues.index');
     Route::get('/revenues/detail/{tableId}', [RevenueController::class, 'detail'])->name('admin.revenues.detail');
     Route::get('/revenues/export', [RevenueController::class, 'export'])->name('admin.revenues.export');
@@ -98,7 +106,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->group(func
 Route::middleware(['auth', 'verified', 'is_superadmin'])->prefix('superadmin')->group(function () {
     Route::get('/', [App\Http\Controllers\superadmin\SuperAdminController::class, 'index'])->name('superadmin.dashboard');
 
-    // Tambahkan route untuk manajemen Admin
+    // Admin management routes
     Route::get('/admin', [AdminManagementController::class, 'index'])->name('superadmin.admin.index');
     Route::get('/admin/create', [AdminManagementController::class, 'create'])->name('superadmin.admin.create');
     Route::post('/admin', [AdminManagementController::class, 'store'])->name('superadmin.admin.store');
@@ -106,7 +114,7 @@ Route::middleware(['auth', 'verified', 'is_superadmin'])->prefix('superadmin')->
     Route::put('/admin/{id}', [AdminManagementController::class, 'update'])->name('superadmin.admin.update');
     Route::delete('/admin/{id}', [AdminManagementController::class, 'destroy'])->name('superadmin.admin.destroy');
     
-    // Tambahkan route untuk manajemen Venue
+    // Venue management routes (for superadmin)
     Route::get('/venue', [VenueManagementController::class, 'index'])->name('superadmin.venue.index');
     Route::get('/venue/create', [VenueManagementController::class, 'create'])->name('superadmin.venue.create');
     Route::post('/venue', [VenueManagementController::class, 'store'])->name('superadmin.venue.store');
