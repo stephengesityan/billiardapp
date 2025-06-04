@@ -141,7 +141,7 @@
 
                         <!-- Error message for login errors -->
                         @if(session('login_error') || ($errors->any() && old('email') && !old('name')))
-                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
                                 @if(session('login_error'))
                                     <p>{{ session('login_error') }}</p>
                                     @if(str_contains(session('login_error'), 'belum diverifikasi'))

@@ -8,8 +8,10 @@
                     TERBAIK</h1>
             </div>
             <div class="text-center mt-5">
-                <a href="#" class="text-white bg-yellow-500 py-2 px-4 rounded-lg font-semibold text-sm md:text-lg">Daftarkan
-                    Venue</a>
+                <a href="https://wa.me/6285730595855?text=Halo%2C%20saya%20tertarik%20untuk%20mendaftarkan%20venue%20saya"
+                    target="_blank" class="text-white bg-yellow-500 py-2 px-4 rounded-lg font-semibold text-sm md:text-lg">
+                    Daftarkan Venue
+                </a>
             </div>
         </div>
 
