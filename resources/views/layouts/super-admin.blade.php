@@ -7,178 +7,159 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Super Admin Dashboard</title>
     <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Alpine.js -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.12.0/cdn.min.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        
-        /* Custom scrollbar for sidebar */
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 4px;
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-        }
-        
-        /* Hover effects */
+
         .nav-item {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            transition: all 0.3s ease;
         }
-        
-        .nav-item::before {
+
+        .nav-item.active {
+            position: relative;
+            background-color: rgb(239, 246, 255);
+            color: rgb(37, 99, 235);
+            font-weight: 500;
+        }
+
+        .nav-item.active::before {
             content: '';
             position: absolute;
+            left: 0;
             top: 0;
-            left: -100%;
-            width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
+            width: 4px;
+            background-color: rgb(37, 99, 235);
+            border-radius: 0 4px 4px 0;
         }
-        
-        .nav-item:hover::before {
-            left: 100%;
+
+        .nav-item:hover:not(.active) {
+            background-color: rgb(249, 250, 251);
+            color: rgb(55, 65, 81);
         }
-        
-        /* Active nav indicator */
-        .nav-active {
-            background: rgba(255, 255, 255, 0.15);
-            border-right: 3px solid white;
-        }
-        
-        /* Profile section gradient */
-        .profile-section {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        .dropdown-transition {
+            transition: all 0.2s ease-out;
         }
     </style>
 </head>
 
-<body class="bg-gray-50">
-    <div x-data="{ sidebarOpen: true }">
+<body x-data="{ sidebarOpen: true, userDropdownOpen: false }" class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Overlay -->
+        <div x-show="sidebarOpen" @click="sidebarOpen = false"
+            class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"></div>
+
         <!-- Sidebar -->
-        <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed top-0 left-0 z-40 w-72 h-screen transition-transform duration-300 ease-in-out bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 text-white shadow-2xl">
-            
-            <!-- Header -->
-            <div class="flex items-center justify-between p-6 border-b border-slate-600/30">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
-                        <i class="fas fa-cubes text-white text-lg"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                            VenueSystem
-                        </h2>
-                        <p class="text-xs text-slate-400 font-medium">Super Admin Panel</p>
-                    </div>
+        <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-20'"
+            class="fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transition-all duration-300 transform lg:relative lg:translate-x-0">
+
+            <!-- Sidebar Header -->
+            <div class="flex items-center justify-between h-16 px-4 border-b">
+                <div class="flex items-center space-x-2">
+                    <span class="font-bold text-lg text-gray-800" x-show="sidebarOpen">Super Admin</span>
                 </div>
-                <button @click="sidebarOpen = !sidebarOpen" 
-                    class="lg:hidden w-8 h-8 rounded-lg bg-slate-600/50 hover:bg-slate-600 transition-colors flex items-center justify-center">
-                    <i class="fas fa-times text-sm"></i>
+                <button @click="sidebarOpen = !sidebarOpen" class="p-1 rounded-md hover:bg-gray-100 focus:outline-none">
+                    <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                    <svg x-show="!sidebarOpen" class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
                 </button>
             </div>
-            
-            <!-- Profile Section -->
-            <div class="p-6">
-                <div class="profile-section rounded-xl p-4 mb-6">
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center shadow-lg">
-                                <i class="fas fa-user-shield text-white text-lg"></i>
-                            </div>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-slate-800"></div>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-semibold text-white">{{ auth()->user()->name ?? 'Admin' }}</p>
-                            <p class="text-sm text-slate-300">Super Administrator</p>
-                            <div class="mt-1">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1"></span>
-                                    Online
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+
+            <!-- Navigation -->
+            <div class="px-2 py-4">
+                <div x-show="sidebarOpen"
+                    class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
+                    Menu Utama
                 </div>
-                
-                <!-- Navigation -->
-                <nav class="space-y-2">
-                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-3">
-                        Main Navigation
-                    </div>
-                    
+                <nav class="space-y-1">
                     <a href="{{ route('superadmin.dashboard') }}"
-                        class="nav-item flex items-center p-3 rounded-lg hover:bg-slate-600/30 {{ request()->routeIs('superadmin.dashboard') ? 'nav-active' : '' }} group">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-blue-600/30 transition-all">
-                            <i class="fas fa-chart-line text-blue-400 group-hover:text-blue-300"></i>
-                        </div>
-                        <div class="ml-4">
-                            <span class="font-medium text-slate-200 group-hover:text-white transition-colors">Dashboard</span>
-                            <p class="text-xs text-slate-400 group-hover:text-slate-300">Analytics & Overview</p>
-                        </div>
+                        class="nav-item flex items-center px-3 py-2.5 rounded-lg {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}">
+                        <i class="fas fa-chart-line w-5 h-5 mr-2 text-sm"></i>
+                        <span x-show="sidebarOpen">Dashboard</span>
                     </a>
 
                     <a href="{{ route('superadmin.venue.index') }}"
-                        class="nav-item flex items-center p-3 rounded-lg hover:bg-slate-600/30 {{ request()->routeIs('superadmin.venue.*') ? 'nav-active' : '' }} group">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center group-hover:from-emerald-500/30 group-hover:to-emerald-600/30 transition-all">
-                            <i class="fas fa-building text-emerald-400 group-hover:text-emerald-300"></i>
-                        </div>
-                        <div class="ml-4">
-                            <span class="font-medium text-slate-200 group-hover:text-white transition-colors">Manajemen Venue</span>
-                            <p class="text-xs text-slate-400 group-hover:text-slate-300">Kelola semua venue</p>
-                        </div>
-                    </a>
-                    
-                    <a href="{{ route('superadmin.admin.index') }}"
-                        class="nav-item flex items-center p-3 rounded-lg hover:bg-slate-600/30 {{ request()->routeIs('superadmin.admin.*') ? 'nav-active' : '' }} group">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center group-hover:from-purple-500/30 group-hover:to-purple-600/30 transition-all">
-                            <i class="fas fa-users-cog text-purple-400 group-hover:text-purple-300"></i>
-                        </div>
-                        <div class="ml-4">
-                            <span class="font-medium text-slate-200 group-hover:text-white transition-colors">Manajemen Admin</span>
-                            <p class="text-xs text-slate-400 group-hover:text-slate-300">Kelola admin venue</p>
-                        </div>
+                        class="nav-item flex items-center px-3 py-2.5 rounded-lg {{ request()->routeIs('superadmin.venue.*') ? 'active' : '' }}">
+                        <i class="fas fa-building w-5 h-5 mr-2 text-sm"></i>
+                        <span x-show="sidebarOpen">Manajemen Venue</span>
                     </a>
 
-                    <a href="{{ route('logout') }}"
-                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                                class="flex items-center p-3 rounded-lg hover:bg-red-700">
-                                <i class="fas fa-sign-out-alt w-5"></i>
-                                <span class="ml-3">Logout</span>
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-                                    @csrf
-                                </form>
-                            </a>
+                    <a href="{{ route('superadmin.admin.index') }}"
+                        class="nav-item flex items-center px-3 py-2.5 rounded-lg {{ request()->routeIs('superadmin.admin.*') ? 'active' : '' }}">
+                        <i class="fas fa-users-cog w-5 h-5 mr-2 text-sm"></i>
+                        <span x-show="sidebarOpen">Manajemen Admin</span>
+                    </a>
                 </nav>
             </div>
-        </aside>
 
-        <!-- Content -->
-        <div :class="sidebarOpen ? 'lg:ml-72' : ''" class="transition-all duration-300">
-            <!-- Top bar -->
-            <header class="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-30 shadow-sm">
-                <div class="px-6 py-4 flex items-center justify-between">
+            <!-- User Profile -->
+            <div class="absolute bottom-0 w-full border-t border-gray-200">
+                <div x-data="{ open: false }" class="relative p-4">
+                    <button @click="open = !open" class="flex items-center w-full text-left focus:outline-none">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                                {{ substr(auth()->user()->name ?? 'SA', 0, 1) }}
+                            </div>
+                        </div>
+                        <div x-show="sidebarOpen" class="ml-3">
+                            <p class="text-sm font-medium text-gray-800 truncate">
+                                {{ auth()->user()->name ?? 'Super Admin' }}</p>
+                            <p class="text-xs text-gray-500 truncate">{{ auth()->user()->email ??
+                                'superadmin@example.com' }}</p>
+                        </div>
+                        <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg"
+                            class="ml-auto h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div x-show="open" @click.outside="open = false"
+                        class="absolute bottom-full left-0 mb-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 py-1 dropdown-transition">
+                        <div class="border-t border-gray-200 my-1"></div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit"
+                                class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            {{-- <header class="bg-white shadow-sm">
+                <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <div class="flex items-center space-x-4">
-                        <button @click="sidebarOpen = !sidebarOpen" 
-                            class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center text-gray-600 hover:text-gray-800">
-                            <i class="fas fa-bars text-sm"></i>
+                        <button @click="sidebarOpen = !sidebarOpen"
+                            class="p-1 rounded-md text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 lg:inline-block">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
                         </button>
-                        
+
                         <!-- Breadcrumb -->
                         <nav class="flex items-center space-x-2 text-sm text-gray-500">
                             <span class="font-medium text-gray-900">Super Admin</span>
@@ -186,68 +167,67 @@
                             <span>Dashboard</span>
                         </nav>
                     </div>
-                    
+
                     <div class="flex items-center space-x-4">
                         <!-- Notifications -->
-                        <button class="relative w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center text-gray-600 hover:text-gray-800">
+                        <button class="relative p-2 rounded-md text-gray-500 hover:bg-gray-100 focus:outline-none">
                             <i class="fas fa-bell text-sm"></i>
                             <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
                         </button>
-                        
+
                         <!-- Profile Dropdown -->
                         <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" 
+                            <button @click="open = !open"
                                 class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
-                                    <i class="fas fa-user text-white text-sm"></i>
+                                <div
+                                    class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                                    {{ substr(auth()->user()->name ?? 'SA', 0, 1) }}
                                 </div>
                                 <div class="text-left hidden md:block">
-                                    <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name ?? 'Admin' }}</p>
+                                    <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name ?? 'Super
+                                        Admin' }}</p>
                                     <p class="text-xs text-gray-500">Super Admin</p>
                                 </div>
-                                <i class="fas fa-chevron-down text-xs text-gray-400" 
-                                   :class="{ 'rotate-180': open }" 
-                                   style="transition: transform 0.2s"></i>
+                                <i class="fas fa-chevron-down text-xs text-gray-400" :class="{ 'rotate-180': open }"
+                                    style="transition: transform 0.2s"></i>
                             </button>
-                            
-                            <div x-show="open" 
-                                 @click.away="open = false"
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 scale-95"
-                                 x-transition:enter-end="opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-150"
-                                 x-transition:leave-start="opacity-100 scale-100"
-                                 x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+
+                            <div x-show="open" @click.away="open = false"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
                                 <div class="px-4 py-3 border-b border-gray-100">
-                                    <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name ?? 'Admin' }}</p>
-                                    <p class="text-xs text-gray-500">{{ auth()->user()->email ?? 'admin@example.com' }}</p>
+                                    <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name ?? 'Super
+                                        Admin' }}</p>
+                                    <p class="text-xs text-gray-500">{{ auth()->user()->email ??
+                                        'superadmin@example.com' }}</p>
                                 </div>
-                                {{-- <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-user mr-3 text-gray-400"></i>
-                                    Profile Settings
-                                </a>
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-cog mr-3 text-gray-400"></i>
-                                    Account Settings
-                                </a> --}}
                                 <div class="border-t border-gray-100 mt-2 pt-2">
                                     <a href="{{ route('logout') }}"
-                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                                        @csrf
+                                    </form>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </header>
+            </header> --}}
 
-            <!-- Main content -->
-            <main class="p-6">
+            <!-- Page Content -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto">
                 @yield('content')
             </main>
         </div>
     </div>
+
+    @stack('scripts')
 </body>
 
 </html>

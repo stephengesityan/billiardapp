@@ -74,6 +74,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     
+    // Admin Profile Routes
+    Route::get('/profile', [App\Http\Controllers\admin\AdminProfileController::class, 'index'])->name('admin.profile.index');
+    Route::put('/profile/update', [App\Http\Controllers\admin\AdminProfileController::class, 'updateProfile'])->name('admin.profile.update');
+    Route::put('/profile/password', [App\Http\Controllers\admin\AdminProfileController::class, 'updatePassword'])->name('admin.profile.password');
+    
     // Booking management routes
     Route::get('/bookings', [BookingsController::class, 'index'])->name('admin.bookings.index');
     Route::get('/bookings/export', [BookingsController::class, 'export'])->name('admin.bookings.export');

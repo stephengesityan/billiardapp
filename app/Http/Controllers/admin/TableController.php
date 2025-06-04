@@ -29,7 +29,7 @@ class TableController extends Controller
             $query->where('status', $request->status);
         }
 
-        $tables = $query->latest()->paginate(10);
+        $tables = $query->orderBy('created_at', 'asc')->paginate(10);
         
         return view('admin.tables.index', compact('tables'));
     }

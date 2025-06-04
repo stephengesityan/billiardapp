@@ -189,8 +189,10 @@
                     <!-- Dropdown -->
                     <div x-show="open" @click.outside="open = false"
                         class="absolute bottom-full left-0 mb-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 py-1 dropdown-transition">
-                        {{-- <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a> --}}
+                        <a href="{{ route('admin.profile.index') }}"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        {{-- <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                        --}}
                         <div class="border-t border-gray-200 my-1"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

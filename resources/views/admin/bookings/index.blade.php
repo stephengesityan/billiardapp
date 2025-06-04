@@ -251,13 +251,13 @@
             </div>
 
             <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0">
                     <div class="text-sm text-gray-500">
                         Menampilkan {{ $bookings->firstItem() ?? 0 }} - {{ $bookings->lastItem() ?? 0 }} dari
                         {{ $bookings->total() }} data
                     </div>
-                    <div>
-                        {{ $bookings->appends(request()->query())->links() }}
+                    <div class="flex justify-center">
+                        {{ $bookings->appends(request()->query())->onEachSide(1)->links() }}
                     </div>
                 </div>
             </div>

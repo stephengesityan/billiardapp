@@ -63,7 +63,7 @@ class BookingsController extends Controller
             $query->orderBy($sortColumn, $sortDirection);
         }
 
-        $bookings = $query->paginate(10)->withQueryString();
+        $bookings = $query->paginate(20)->withQueryString();
 
         return view('admin.bookings.index', compact('bookings'));
     }
