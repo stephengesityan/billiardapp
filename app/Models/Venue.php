@@ -19,10 +19,6 @@ class Venue extends Model
         'close_time',     // Pastikan field ini ada
     ];
 
-    protected $casts = [
-        'open_time' => 'datetime',
-        'close_time' => 'datetime',
-    ];
 
     public function tables()
     {
