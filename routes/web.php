@@ -26,7 +26,7 @@ Route::get('/', [HomeController::class, "index"])->name('home');
 Route::get('/venue/{venueName}', [VenueController::class, "venue"])->name('venue');
 
 // Changed routes for the new booking flow
-Route::post('/booking/payment-intent', [BookingController::class, 'createPaymentIntent'])->name('booking.payment-intent');
+Route::post('/booking/initiate', [BookingController::class, 'createPaymentIntent'])->name('booking.initiate');
 Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 Route::get('/booking/schedules', [BookingController::class, 'getBookedSchedules'])->name('booking.schedules');
 Route::post('/payment/notification', [BookingController::class, 'handleNotification'])->name('payment.notification');

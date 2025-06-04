@@ -23,179 +23,253 @@ class BookingController extends Controller
     }
 
     // Tambahkan method baru untuk booking langsung oleh admin
-    public function adminDirectBooking(Request $request) {
-        try {
-            $request->validate([
-                'table_id' => 'required|exists:tables,id',
-                'start_time' => 'required|date',
-                'end_time' => 'required|date|after:start_time',
-            ]);
-            
-            $user = Auth::user();
-            
-            // Validasi bahwa user adalah admin dan mengelola venue dari meja tersebut
-            $table = Table::findOrFail($request->table_id);
-            if ($user->role !== 'admin' || $user->venue_id !== $table->venue_id) {
-                return response()->json([
-                    'message' => 'Unauthorized action'
-                ], 403);
-            }
-
-            // Cek konflik booking
-            $conflict = Booking::where('table_id', $request->table_id)
-                    ->where(function($query) use ($request) {
-                        $query->whereBetween('start_time', [$request->start_time, $request->end_time])
-                        ->orWhere(function($query) use ($request) {
-                            $query->where('start_time', '<', $request->start_time)
-                            ->where('end_time', '>', $request->start_time);
-                        });
-                    })
-                    ->where('status', 'paid')
-                    ->exists();
-
-            if ($conflict) {
-                return response()->json(['message' => 'Meja sudah dibooking di jam tersebut'], 409);
-            }
-
-            // Hitung total biaya (meskipun admin tidak membayar, kita tetap catat nilainya)
-            $startTime = Carbon::parse($request->start_time);
-            $endTime = Carbon::parse($request->end_time);
-            $duration = $endTime->diffInHours($startTime);
-            $totalAmount = $duration * $table->price_per_hour;
-            
-            // Generate order ID unik untuk admin
-            $adminOrderId = 'ADMIN-' . $user->id . '-' . time();
-            
-            // Buat booking langsung dengan status paid
-            $booking = Booking::create([
-                'table_id' => $request->table_id,
-                'user_id' => $user->id,
-                'start_time' => $request->start_time,
-                'end_time' => $request->end_time,
-                'status' => 'paid', // langsung set sebagai paid
-                'total_amount' => $totalAmount,
-                'payment_id' => null, // Admin tidak perlu payment_id
-                'payment_method' => 'admin_direct', // Tandai sebagai booking langsung admin
-                'order_id' => $adminOrderId,
-            ]);
-
-            // Update table status menjadi Booked
-            $table->update(['status' => 'Booked']);
-            
+   public function adminDirectBooking($request) {
+    try {
+        // Handle both Request object dan Collection
+        $data = $request instanceof \Illuminate\Http\Request ? $request->all() : $request->toArray();
+        
+        // Validasi manual karena bisa dari collection
+        if (!isset($data['table_id']) || !isset($data['start_time']) || !isset($data['end_time'])) {
             return response()->json([
-                'message' => 'Booking created successfully',
-                'booking_id' => $booking->id
-            ]);
-            
-        } catch (\Exception $e) {
-            \Log::error('Admin direct booking error:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return response()->json([
-                'message' => 'Failed to create booking: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Missing required fields'
+            ], 400);
         }
+
+        $user = Auth::user();
+
+        // Validasi bahwa user adalah admin dan mengelola venue dari meja tersebut
+        $table = Table::findOrFail($data['table_id']);
+        if ($user->role !== 'admin' || $user->venue_id !== $table->venue_id) {
+            return response()->json([
+                'message' => 'Unauthorized action'
+            ], 403);
+        }
+
+        // Parse start_time dan end_time yang sudah dalam format datetime string
+        $startDateTime = Carbon::parse($data['start_time']);
+        $endDateTime = Carbon::parse($data['end_time']);
+
+        // Validasi jam operasional venue (opsional, karena sudah divalidasi di createPaymentIntent)
+        $venue = $table->venue;
+        $venueOpenTime = Carbon::parse($venue->open_time);
+        $venueCloseTime = Carbon::parse($venue->close_time);
+        
+        $startTimeOnly = $startDateTime->format('H:i');
+        $endTimeOnly = $endDateTime->format('H:i');
+        
+        if ($startTimeOnly < $venueOpenTime->format('H:i') || $endTimeOnly > $venueCloseTime->format('H:i')) {
+            return response()->json([
+                'message' => 'Waktu booking di luar jam operasional venue'
+            ], 400);
+        }
+
+        // Cek konflik booking
+        $conflict = Booking::where('table_id', $data['table_id'])
+            ->whereDate('start_time', $startDateTime->format('Y-m-d'))
+            ->where(function($query) use ($startDateTime, $endDateTime) {
+                $query->where(function($q) use ($startDateTime, $endDateTime) {
+                    // Case 1: Booking baru mulai di tengah booking yang ada
+                    $q->where('start_time', '<=', $startDateTime)
+                      ->where('end_time', '>', $startDateTime);
+                })->orWhere(function($q) use ($startDateTime, $endDateTime) {
+                    // Case 2: Booking baru berakhir di tengah booking yang ada
+                    $q->where('start_time', '<', $endDateTime)
+                      ->where('end_time', '>=', $endDateTime);
+                })->orWhere(function($q) use ($startDateTime, $endDateTime) {
+                    // Case 3: Booking baru mencakup seluruh booking yang ada
+                    $q->where('start_time', '>=', $startDateTime)
+                      ->where('end_time', '<=', $endDateTime);
+                });
+            })
+            ->whereIn('status', ['paid', 'pending'])
+            ->exists();
+
+        if ($conflict) {
+            return response()->json([
+                'message' => 'Meja sudah dibooking di jam tersebut'
+            ], 409);
+        }
+
+        // Hitung total biaya dan durasi
+        $duration = $endDateTime->diffInHours($startDateTime);
+        $totalAmount = $duration * $table->price_per_hour;
+
+        // Generate order ID unik untuk admin
+        $adminOrderId = 'ADMIN-' . $user->id . '-' . time();
+
+        // Buat booking langsung dengan status paid
+        $booking = Booking::create([
+            'table_id' => $data['table_id'],
+            'user_id' => $user->id,
+            'start_time' => $startDateTime,
+            'end_time' => $endDateTime,
+            'status' => 'paid',
+            'total_amount' => $totalAmount,
+            'payment_id' => null,
+            'payment_method' => 'admin_direct',
+            'order_id' => $adminOrderId,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking berhasil dibuat oleh admin',
+            'booking_id' => $booking->id,
+            'booking_details' => [
+                'table_name' => $table->name,
+                'start_time' => $startDateTime->format('Y-m-d H:i:s'),
+                'end_time' => $endDateTime->format('Y-m-d H:i:s'),
+                'duration' => $duration . ' jam',
+                'total_amount' => 'Rp ' . number_format($totalAmount, 0, ',', '.')
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error('Admin direct booking error:', [
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'request_data' => $request instanceof \Illuminate\Http\Request ? $request->all() : $request->toArray()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal membuat booking: ' . $e->getMessage()
+        ], 500);
     }
+}
 
 
     public function createPaymentIntent(Request $request) {
-        try {
-            $request->validate([
-                'table_id' => 'required|exists:tables,id',
-                'start_time' => 'required|date',
-                'end_time' => 'required|date|after:start_time',
-            ]);
+    try {
+        $request->validate([
+            'table_id' => 'required|exists:tables,id',
+            'start_time' => 'required', // Ubah dari date menjadi string untuk format H:i
+            'duration' => 'required|integer|min:1|max:12', // Validasi durasi
+            'booking_date' => 'required|date_format:Y-m-d', // Validasi tanggal booking
+        ]);
 
-            $user = Auth::user();
-            $table = Table::findOrFail($request->table_id);
+        $user = Auth::user();
+        $table = Table::with('venue')->findOrFail($request->table_id);
 
-            if ($user->role === 'admin' && $user->venue_id === $table->venue_id) {
-                return $this->adminDirectBooking($request);
-            }
+        // Buat datetime lengkap dari booking_date dan start_time
+        $bookingDate = $request->booking_date;
+        $startTime = $request->start_time; // Format H:i (contoh: "14:00")
+        $duration = (int) $request->duration;
 
-            // Cek apakah meja sedang dibooking pada waktu tersebut (hanya yang sudah paid)
-            $conflict = Booking::where('table_id', $request->table_id)
-                    ->where(function($query) use ($request) {
-                        $query->whereBetween('start_time', [$request->start_time, $request->end_time])
-                        ->orWhere(function($query) use ($request) {
-                            $query->where('start_time', '<', $request->start_time)
-                            ->where('end_time', '>', $request->start_time);
-                        });
-                    })
-                    ->where('status', 'paid') // Hanya cek yang sudah paid
-                    ->exists();
+        // Gabungkan tanggal dan waktu untuk membuat datetime lengkap
+        $startDateTime = Carbon::createFromFormat('Y-m-d H:i', $bookingDate . ' ' . $startTime, 'Asia/Jakarta');
+        $endDateTime = $startDateTime->copy()->addHours($duration);
 
-            if ($conflict) {
-                return response()->json(['message' => 'Meja sudah dibooking di jam tersebut'], 409);
-            }
-
-            // Hitung total biaya
-            $table = Table::findOrFail($request->table_id);
-            $startTime = Carbon::parse($request->start_time);
-            $endTime = Carbon::parse($request->end_time);
-            $duration = $endTime->diffInHours($startTime);
-            $totalAmount = $duration * $table->price_per_hour;
-
-            // Simpan data booking sementara di session untuk digunakan setelah pembayaran
-            Session::put('temp_booking', [
-                'table_id' => $request->table_id,
-                'user_id' => Auth::id(),
-                'start_time' => $request->start_time,
-                'end_time' => $request->end_time,
-                'total_amount' => $totalAmount,
-                'created_at' => now(),
-            ]);
-
-            // Generate unique order ID
-            $tempOrderId = 'TEMP-' . Auth::id() . '-' . time();
-            Session::put('temp_order_id', $tempOrderId);
-
-            // Simpan booking sementara ke database untuk bisa dilanjutkan nanti
-            PendingBooking::updateOrCreate(
-                [
-                    'user_id' => Auth::id(),
-                    'table_id' => $request->table_id,
-                    'start_time' => $request->start_time
-                ],
-                [
-                    'end_time' => $request->end_time,
-                    'total_amount' => $totalAmount,
-                    'order_id' => $tempOrderId,
-                    'expired_at' => now()->addHours(24), // Kadaluarsa dalam 24 jam
-                ]
-            );
-
-            // Dapatkan snap token dari Midtrans tanpa menyimpan booking
-            $snapToken = $this->midtransService->createTemporaryTransaction($table, $totalAmount, $tempOrderId, Auth::user());
-
-            if (!$snapToken) {
-                throw new \Exception('Failed to get snap token from Midtrans');
-            }
-
-            \Log::info('Payment intent created successfully:', [
-                'order_id' => $tempOrderId,
-                'snap_token' => $snapToken
-            ]);
-
+        // Validasi waktu booking dalam jam operasional venue
+        $venueOpenTime = Carbon::createFromFormat('H:i:s', $table->venue->open_time)->format('H:i');
+        $venueCloseTime = Carbon::createFromFormat('H:i:s', $table->venue->close_time)->format('H:i');
+        
+        if ($startTime < $venueOpenTime || $startTime >= $venueCloseTime) {
             return response()->json([
-                'message' => 'Payment intent created, proceed to payment',
-                'total_amount' => $totalAmount,
-                'snap_token' => $snapToken,
-                'order_id' => $tempOrderId
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Payment intent error:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return response()->json([
-                'message' => 'Gagal membuat transaksi: ' . $e->getMessage()
-            ], 500);
+                'success' => false,
+                'message' => 'Waktu booking di luar jam operasional venue'
+            ], 422);
         }
+
+        // Validasi bahwa end time tidak melebihi jam tutup venue
+        if ($endDateTime->format('H:i') > $venueCloseTime) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Durasi booking melebihi jam tutup venue'
+            ], 422);
+        }
+
+        // Cek untuk admin direct booking
+        if ($user->role === 'admin' && $user->venue_id === $table->venue_id) {
+            return $this->adminDirectBooking(collect([
+                'table_id' => $request->table_id,
+                'start_time' => $startDateTime->toDateTimeString(),
+                'end_time' => $endDateTime->toDateTimeString(),
+            ]));
+        }
+
+        // Cek konflik booking dengan format datetime lengkap
+        $conflict = Booking::where('table_id', $request->table_id)
+                ->where(function($query) use ($startDateTime, $endDateTime) {
+                    $query->where(function($q) use ($startDateTime, $endDateTime) {
+                        $q->where('start_time', '<', $endDateTime)
+                          ->where('end_time', '>', $startDateTime);
+                    });
+                })
+                ->where('status', 'paid')
+                ->exists();
+
+        if ($conflict) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Meja sudah dibooking di jam tersebut'
+            ], 409);
+        }
+
+        // Hitung total biaya
+        $totalAmount = $duration * $table->price_per_hour;
+
+        // Simpan data booking sementara di session
+        Session::put('temp_booking', [
+            'table_id' => $request->table_id,
+            'user_id' => Auth::id(),
+            'start_time' => $startDateTime->toDateTimeString(),
+            'end_time' => $endDateTime->toDateTimeString(),
+            'total_amount' => $totalAmount,
+            'created_at' => now(),
+        ]);
+
+        // Generate unique order ID
+        $tempOrderId = 'TEMP-' . Auth::id() . '-' . time();
+        Session::put('temp_order_id', $tempOrderId);
+
+        // Simpan booking sementara ke database
+        PendingBooking::updateOrCreate(
+            [
+                'user_id' => Auth::id(),
+                'table_id' => $request->table_id,
+                'start_time' => $startDateTime->toDateTimeString()
+            ],
+            [
+                'end_time' => $endDateTime->toDateTimeString(),
+                'total_amount' => $totalAmount,
+                'order_id' => $tempOrderId,
+                'expired_at' => now()->addHours(24),
+            ]
+        );
+
+        // Dapatkan snap token dari Midtrans
+        $snapToken = $this->midtransService->createTemporaryTransaction($table, $totalAmount, $tempOrderId, Auth::user());
+
+        if (!$snapToken) {
+            throw new \Exception('Failed to get snap token from Midtrans');
+        }
+
+        \Log::info('Payment intent created successfully:', [
+            'order_id' => $tempOrderId,
+            'snap_token' => $snapToken,
+            'start_time' => $startDateTime->toDateTimeString(),
+            'end_time' => $endDateTime->toDateTimeString()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment intent created, proceed to payment',
+            'total_amount' => $totalAmount,
+            'snap_token' => $snapToken,
+            'order_id' => $tempOrderId
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Payment intent error:', [
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal membuat transaksi: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     public function store(Request $request) {
         try {

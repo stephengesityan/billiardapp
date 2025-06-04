@@ -21,7 +21,6 @@
                 class="w-full h-full object-cover rounded-lg mb-4 mt-8" />
 
             <h1 class="text-xl text-gray-800 font-semibold">{{ $venue['name'] }}</h1>
-            <p class="text-sm text-gray-500">{{ $venue['location'] ?? 'Lokasi tidak tersedia' }}</p>
             <p class="text-sm text-gray-600 mt-1">
                 <i class="fa-regular fa-clock"></i>
                 Jam Operasional: {{ date('H:i', strtotime($venue['open_time'])) }} -
@@ -183,12 +182,12 @@
 
             toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 transform transition-all duration-300 translate-x-full opacity-0`;
             toast.innerHTML = `
-                                                    <i class="fas ${icon}"></i>
-                                                    <span class="flex-1">${message}</span>
-                                                    <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                `;
+                                                                <i class="fas ${icon}"></i>
+                                                                <span class="flex-1">${message}</span>
+                                                                <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
+                                                                    <i class="fas fa-times"></i>
+                                                                </button>
+                                                            `;
 
             toastContainer.appendChild(toast);
 
@@ -224,20 +223,20 @@
             }[type] || 'fa-info-circle';
 
             modal.innerHTML = `
-                                                    <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
-                                                        <div class="flex items-center space-x-3 mb-4">
-                                                            <i class="fas ${icon} text-2xl ${iconColor}"></i>
-                                                            <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
-                                                        </div>
-                                                        <p class="text-gray-600 mb-6">${message}</p>
-                                                        <div class="flex justify-end space-x-3">
-                                                            <button onclick="this.closest('.fixed').remove(); ${callback ? callback + '()' : ''}" 
-                                                                    class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
-                                                                OK
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                `;
+                                                                <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
+                                                                    <div class="flex items-center space-x-3 mb-4">
+                                                                        <i class="fas ${icon} text-2xl ${iconColor}"></i>
+                                                                        <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+                                                                    </div>
+                                                                    <p class="text-gray-600 mb-6">${message}</p>
+                                                                    <div class="flex justify-end space-x-3">
+                                                                        <button onclick="this.closest('.fixed').remove(); ${callback ? callback + '()' : ''}" 
+                                                                                class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+                                                                            OK
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            `;
 
             document.body.appendChild(modal);
 
@@ -256,22 +255,22 @@
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
 
             modal.innerHTML = `
-                                                    <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
-                                                        <div class="flex items-center space-x-3 mb-4">
-                                                            <i class="fas fa-question-circle text-2xl text-yellow-500"></i>
-                                                            <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
-                                                        </div>
-                                                        <p class="text-gray-600 mb-6">${message}</p>
-                                                        <div class="flex justify-end space-x-3">
-                                                            <button id="cancelBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors">
-                                                                Batal
-                                                            </button>
-                                                            <button id="confirmBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
-                                                                Ya, Hapus
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                `;
+                                                                <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
+                                                                    <div class="flex items-center space-x-3 mb-4">
+                                                                        <i class="fas fa-question-circle text-2xl text-yellow-500"></i>
+                                                                        <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+                                                                    </div>
+                                                                    <p class="text-gray-600 mb-6">${message}</p>
+                                                                    <div class="flex justify-end space-x-3">
+                                                                        <button id="cancelBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors">
+                                                                            Batal
+                                                                        </button>
+                                                                        <button id="confirmBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
+                                                                            Ya, Hapus
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            `;
 
             document.body.appendChild(modal);
 
@@ -630,29 +629,45 @@
                             window.dispatchEvent(new CustomEvent('hide-loading'));
 
                             if (data.success) {
-                                console.log("Opening payment with snap token:", data.snap_token);
-                                // Open Snap payment
-                                window.snap.pay(data.snap_token, {
-                                    onSuccess: (result) => {
-                                        this.createBooking(data.order_id, result);
-                                    },
-                                    onPending: (result) => {
-                                        showToast('Pembayaran pending, silahkan selesaikan pembayaran', 'warning');
-                                        this.isLoading = false;
-                                    },
-                                    onError: (result) => {
-                                        showToast('Pembayaran gagal', 'error');
-                                        this.isLoading = false;
-                                    },
-                                    onClose: () => {
-                                        showToast('Anda menutup popup tanpa menyelesaikan pembayaran', 'warning');
-                                        this.isLoading = false;
-                                        window.justClosedPayment = true;
+                                // Cek apakah ini admin direct booking atau customer payment
+                                if (data.snap_token) {
+                                    // Customer biasa - perlu payment
+                                    console.log("Opening payment with snap token:", data.snap_token);
+                                    window.snap.pay(data.snap_token, {
+                                        onSuccess: (result) => {
+                                            this.createBooking(data.order_id, result);
+                                        },
+                                        onPending: (result) => {
+                                            showToast('Pembayaran pending, silahkan selesaikan pembayaran', 'warning');
+                                            this.isLoading = false;
+                                        },
+                                        onError: (result) => {
+                                            showToast('Pembayaran gagal', 'error');
+                                            this.isLoading = false;
+                                        },
+                                        onClose: () => {
+                                            showToast('Anda menutup popup tanpa menyelesaikan pembayaran', 'warning');
+                                            this.isLoading = false;
+                                            window.justClosedPayment = true;
 
-                                        // Dispatch event to refresh pending bookings
-                                        document.dispatchEvent(refreshPendingBookingsEvent);
-                                    }
-                                });
+                                            // Dispatch event to refresh pending bookings
+                                            document.dispatchEvent(refreshPendingBookingsEvent);
+                                        }
+                                    });
+                                } else if (data.booking_id) {
+                                    // Admin direct booking - langsung berhasil
+                                    showToast(data.message || 'Booking berhasil dibuat!', 'success');
+                                    this.isLoading = false;
+
+                                    // Refresh halaman atau reload available times
+                                    setTimeout(() => {
+                                        window.location.reload(); // Atau panggil method refresh yang sudah ada
+                                    }, 1000);
+                                } else {
+                                    // Response success tapi tidak ada snap_token atau booking_id
+                                    showToast(data.message || 'Booking berhasil diproses', 'success');
+                                    this.isLoading = false;
+                                }
                             } else {
                                 showToast(data.message, 'error');
                                 this.isLoading = false;
