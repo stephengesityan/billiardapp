@@ -18,12 +18,17 @@ class VenueController extends Controller
         }
 
         // Ambil tabel-tabel terkait dengan venue
-        $tables = $venue->tables;
+        $venue->load('tables'); // Eager loading untuk optimasi
 
-        // Mengirim data venue dan tabel ke view
+        // Parsing jam operasional dari format H:i:s menjadi integer
+        $openHour = (int) date('H', strtotime($venue->open_time));
+        $closeHour = (int) date('H', strtotime($venue->close_time));
+        
+        // Mengirim data venue dengan jam operasional ke view
         return view('pages.venue', [
             'venue' => $venue,
-            'tables' => $tables
+            'openHour' => $openHour,
+            'closeHour' => $closeHour
         ]);
     }
 }

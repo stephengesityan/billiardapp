@@ -21,7 +21,12 @@
                 class="w-full h-full object-cover rounded-lg mb-4 mt-8" />
 
             <h1 class="text-xl text-gray-800 font-semibold">{{ $venue['name'] }}</h1>
-            <p class="text-sm text-gray-500">{{ $venue['location'] }}</p>
+            <p class="text-sm text-gray-500">{{ $venue['location'] ?? 'Lokasi tidak tersedia' }}</p>
+            <p class="text-sm text-gray-600 mt-1">
+                <i class="fa-regular fa-clock"></i>
+                Jam Operasional: {{ date('H:i', strtotime($venue['open_time'])) }} -
+                {{ date('H:i', strtotime($venue['close_time'])) }}
+            </p>
         </div>
         <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($venue['address']) }}" target="_blank"
             class="flex items-center bg-[url('/public/images/map.jpg')] bg-cover bg-center p-4">
@@ -100,7 +105,7 @@
                 </div>
             </div>
             @foreach ($venue['tables'] as $table)
-                <div x-data="booking(@json(auth()->check()), '{{ $table['id'] }}')"
+                <div x-data="booking(@json(auth()->check()), '{{ $table['id'] }}', {{ $openHour }}, {{ $closeHour }})"
                     class="border rounded-lg shadow-md p-4 mb-4">
                     <div class="flex items-center justify-between cursor-pointer"
                         @click="open = !open; if(open) checkBookedSchedules()">
@@ -123,7 +128,7 @@
                         <h4 class="font-semibold mb-2">Pilih Jam Booking:</h4>
                         <select class="w-full border p-2 rounded-lg" x-model="selectedTime">
                             <option value="">-- Pilih Jam --</option>
-                            <template x-for="hour in getHoursInRange(9, 24)" :key="hour">
+                            <template x-for="hour in getAvailableHours()" :key="hour">
                                 <option :value="hour + ':00'" :disabled="isTimeBooked(hour + ':00')"
                                     x-text="hour + ':00' + (isTimeBooked(hour + ':00') ? ' (Booked)' : '')">
                                 </option>
@@ -178,12 +183,12 @@
 
             toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 transform transition-all duration-300 translate-x-full opacity-0`;
             toast.innerHTML = `
-                                        <i class="fas ${icon}"></i>
-                                        <span class="flex-1">${message}</span>
-                                        <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    `;
+                                                    <i class="fas ${icon}"></i>
+                                                    <span class="flex-1">${message}</span>
+                                                    <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                `;
 
             toastContainer.appendChild(toast);
 
@@ -219,20 +224,20 @@
             }[type] || 'fa-info-circle';
 
             modal.innerHTML = `
-                                        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
-                                            <div class="flex items-center space-x-3 mb-4">
-                                                <i class="fas ${icon} text-2xl ${iconColor}"></i>
-                                                <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
-                                            </div>
-                                            <p class="text-gray-600 mb-6">${message}</p>
-                                            <div class="flex justify-end space-x-3">
-                                                <button onclick="this.closest('.fixed').remove(); ${callback ? callback + '()' : ''}" 
-                                                        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
-                                                    OK
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `;
+                                                    <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
+                                                        <div class="flex items-center space-x-3 mb-4">
+                                                            <i class="fas ${icon} text-2xl ${iconColor}"></i>
+                                                            <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+                                                        </div>
+                                                        <p class="text-gray-600 mb-6">${message}</p>
+                                                        <div class="flex justify-end space-x-3">
+                                                            <button onclick="this.closest('.fixed').remove(); ${callback ? callback + '()' : ''}" 
+                                                                    class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+                                                                OK
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                `;
 
             document.body.appendChild(modal);
 
@@ -251,22 +256,22 @@
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
 
             modal.innerHTML = `
-                                        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
-                                            <div class="flex items-center space-x-3 mb-4">
-                                                <i class="fas fa-question-circle text-2xl text-yellow-500"></i>
-                                                <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
-                                            </div>
-                                            <p class="text-gray-600 mb-6">${message}</p>
-                                            <div class="flex justify-end space-x-3">
-                                                <button id="cancelBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors">
-                                                    Batal
-                                                </button>
-                                                <button id="confirmBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
-                                                    Ya, Hapus
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `;
+                                                    <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
+                                                        <div class="flex items-center space-x-3 mb-4">
+                                                            <i class="fas fa-question-circle text-2xl text-yellow-500"></i>
+                                                            <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+                                                        </div>
+                                                        <p class="text-gray-600 mb-6">${message}</p>
+                                                        <div class="flex justify-end space-x-3">
+                                                            <button id="cancelBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors">
+                                                                Batal
+                                                            </button>
+                                                            <button id="confirmBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
+                                                                Ya, Hapus
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                `;
 
             document.body.appendChild(modal);
 
@@ -535,19 +540,22 @@
                 }
             }));
 
-            // Regular booking component (existing)
-            Alpine.data('booking', (isLoggedIn, tableId) => ({
+            // Regular booking component (updated with dynamic hours)
+            Alpine.data('booking', (isLoggedIn, tableId, openHour, closeHour) => ({
                 isLoggedIn,
                 tableId,
+                openHour, // Dynamic open hour from venue
+                closeHour, // Dynamic close hour from venue
                 open: false,
                 selectedTime: '',
                 selectedDuration: '',
                 isLoading: false,
                 bookedSchedules: [],
 
-                getHoursInRange(startHour, endHour) {
+                // Updated method to use dynamic hours from venue
+                getAvailableHours() {
                     let hours = [];
-                    for (let i = startHour; i <= endHour; i++) {
+                    for (let i = this.openHour; i <= this.closeHour; i++) {
                         hours.push(i.toString().padStart(2, '0'));
                     }
                     return hours;
@@ -594,34 +602,17 @@
 
                     // Uncomment this for production to prevent booking past times
                     if (selectedDateTime <= now) {
-                        showToast('Jam yang dipilih sudah lewat. Silakan pilih jam yang masih tersedia.', 'warning');
+                        showToast('Tidak bisa booking untuk waktu yang sudah berlalu', 'warning');
                         return;
                     }
 
                     this.isLoading = true;
                     window.dispatchEvent(new CustomEvent('show-loading'));
 
-                    // Hitung end time
-                    const bookingStart = new Date();
-                    bookingStart.setHours(selectedHour, selectedMinute, 0, 0);
-                    const bookingEnd = new Date(bookingStart);
-                    bookingEnd.setHours(bookingEnd.getHours() + parseInt(selectedDuration));
-
-                    const endTimeFormatted = ('0' + bookingEnd.getHours()).slice(-2) + ':' + ('0' + bookingEnd.getMinutes()).slice(-2);
-
                     // Gunakan tanggal Jakarta yang konsisten
-                    const today = getJakartaDateString();
+                    const bookingDate = getJakartaDateString();
 
-                    const start_time = `${today} ${selectedTime}`;
-                    const end_time = `${today} ${endTimeFormatted}`;
-
-                    console.log('Booking data:', { start_time, end_time, today });
-
-                    // Track that we're creating a new booking
-                    window.creatingNewBooking = true;
-
-                    // Kirim ke backend untuk membuat payment intent
-                    fetch('/booking/payment-intent', {
+                    fetch('/booking/initiate', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -629,86 +620,53 @@
                         },
                         body: JSON.stringify({
                             table_id: tableId,
-                            start_time: start_time,
-                            end_time: end_time,
+                            start_time: selectedTime,
+                            duration: selectedDuration,
+                            booking_date: bookingDate
                         }),
                     })
-                        .then(res => {
-                            if (!res.ok) {
-                                return res.json().then(err => {
-                                    throw new Error(err.message || 'Gagal membuat booking');
-                                });
-                            }
-                            return res.json();
-                        })
+                        .then(res => res.json())
                         .then(data => {
                             window.dispatchEvent(new CustomEvent('hide-loading'));
 
-                            // Cek apakah ini response dari admin direct booking
-                            if (data.booking_id && data.message === 'Booking created successfully') {
-                                // Admin booking berhasil tanpa payment
-                                showToast('Booking berhasil dibuat!', 'success');
-                                this.isLoading = false;
+                            if (data.success) {
+                                console.log("Opening payment with snap token:", data.snap_token);
+                                // Open Snap payment
+                                window.snap.pay(data.snap_token, {
+                                    onSuccess: (result) => {
+                                        this.createBooking(data.order_id, result);
+                                    },
+                                    onPending: (result) => {
+                                        showToast('Pembayaran pending, silahkan selesaikan pembayaran', 'warning');
+                                        this.isLoading = false;
+                                    },
+                                    onError: (result) => {
+                                        showToast('Pembayaran gagal', 'error');
+                                        this.isLoading = false;
+                                    },
+                                    onClose: () => {
+                                        showToast('Anda menutup popup tanpa menyelesaikan pembayaran', 'warning');
+                                        this.isLoading = false;
+                                        window.justClosedPayment = true;
 
-                                // Reset form
-                                this.selectedTime = '';
-                                this.selectedDuration = '';
-                                this.open = false;
-
-                                // Refresh halaman atau komponen yang diperlukan
-                                this.checkBookedSchedules();
-
-                                // Refresh pending bookings jika ada
-                                document.dispatchEvent(refreshPendingBookingsEvent);
-
-                                return; // Exit early untuk admin booking
-                            }
-
-                            // Flow normal untuk customer (membutuhkan payment)
-                            if (!data.snap_token) {
-                                throw new Error('Snap token tidak ditemukan');
-                            }
-
-                            // Track bahwa kita sedang membuat booking baru
-                            window.creatingNewBooking = true;
-
-                            // Buka Snap Midtrans untuk customer
-                            window.snap.pay(data.snap_token, {
-                                onSuccess: (result) => {
-                                    this.createBookingAfterPayment(data.order_id, result);
-                                },
-                                onPending: (result) => {
-                                    showToast('Pembayaran pending, silahkan selesaikan pembayaran', 'warning');
-                                    this.isLoading = false;
-                                },
-                                onError: (result) => {
-                                    showToast('Pembayaran gagal', 'error');
-                                    this.isLoading = false;
-                                    window.creatingNewBooking = false;
-                                },
-                                onClose: () => {
-                                    showToast('Anda menutup popup tanpa menyelesaikan pembayaran', 'warning');
-                                    this.isLoading = false;
-                                    window.justClosedPayment = true;
-
-                                    if (window.creatingNewBooking) {
-                                        window.creatingNewBooking = false;
+                                        // Dispatch event to refresh pending bookings
                                         document.dispatchEvent(refreshPendingBookingsEvent);
                                     }
-                                }
-                            });
+                                });
+                            } else {
+                                showToast(data.message, 'error');
+                                this.isLoading = false;
+                            }
                         })
                         .catch(err => {
                             window.dispatchEvent(new CustomEvent('hide-loading'));
-                            console.error('Booking error:', err);
-                            showToast('Gagal membuat booking: ' + err.message, 'error');
+                            console.error('Booking initiation error:', err);
+                            showToast('Gagal melakukan booking', 'error');
                             this.isLoading = false;
-                            window.creatingNewBooking = false;
                         });
                 },
 
-                // Fungsi untuk menyimpan booking setelah pembayaran berhasil
-                createBookingAfterPayment(orderId, paymentResult) {
+                createBooking(orderId, paymentResult) {
                     window.dispatchEvent(new CustomEvent('show-loading'));
 
                     fetch('/booking', {
@@ -735,14 +693,17 @@
                         .then(data => {
                             window.dispatchEvent(new CustomEvent('hide-loading'));
                             showToast('Pembayaran dan booking berhasil!', 'success');
+                            this.isLoading = false;
 
-                            // Reset the flag
-                            window.creatingNewBooking = false;
+                            // Reset form
+                            this.selectedTime = '';
+                            this.selectedDuration = '';
+                            this.open = false;
 
-                            // Refresh component data
-                            document.dispatchEvent(new CustomEvent('booking-completed'));
+                            // Refresh booked schedules
+                            this.checkBookedSchedules();
 
-                            // Redirect to booking history page
+                            // Redirect to booking history
                             setTimeout(() => {
                                 window.location.href = '/booking/history';
                             }, 2000);
@@ -752,19 +713,14 @@
                             console.error('Booking error:', err);
                             showToast('Pembayaran berhasil tetapi gagal menyimpan booking: ' + err.message, 'error');
                             this.isLoading = false;
-                            window.creatingNewBooking = false;
                         });
-                },
-
-                // Method to refresh booked schedules without reloading the page
-                async refreshBookedSchedules() {
-                    await this.checkBookedSchedules();
                 }
             }));
         });
 
-        // Initialize clock update
+        // Initialize clock
+        updateClock();
         setInterval(updateClock, 1000);
-        updateClock(); // Initial call
     </script>
+
 @endsection
