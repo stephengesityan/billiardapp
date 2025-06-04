@@ -58,11 +58,32 @@
                         <div class="flex-grow px-4 py-2">
                             <h3 class="text-sm text-gray-400 font-semibold mb-2">Venue</h3>
                             <h1 class="text-xl text-gray-800 font-semibold">{{ $venue->name }}</h1>
-                            <p class="text-sm text-gray-600 mt-1">
-                                <i class="fa-regular fa-clock"></i>
-                                Buka: {{ date('H:i', strtotime($venue['open_time'])) }} -
-                                {{ date('H:i', strtotime($venue['close_time'])) }}
-                            </p>
+                            @if($venue['status'] === 'open')
+                                {{-- Venue sedang buka - tampilkan jam operasional --}}
+                                <p class="text-sm text-gray-600 mt-1">
+                                    <i class="fa-regular fa-clock text-green-500"></i>
+                                    Buka: {{ date('H:i', strtotime($venue['open_time'])) }} -
+                                    {{ date('H:i', strtotime($venue['close_time'])) }}
+                                </p>
+                            @else
+                                {{-- Venue sedang tutup - tampilkan informasi penutupan --}}
+                                <div class="mt-1">
+                                    <p class="text-sm text-red-600 font-medium">
+                                        <i class="fa-solid fa-circle-xmark text-red-500"></i>
+                                        Tutup Sementara - {{ $venue['close_reason'] }}
+                                    </p>
+
+
+                                    @if(!empty($venue['reopen_date']))
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <strong>Buka kembali:</strong>
+                                            {{ \Carbon\Carbon::parse($venue['reopen_date'])->format('d M Y') }} - Jam
+                                            {{ date('H:i', strtotime($venue['original_open_time'])) }}
+                                        </p>
+                                    @endif
+                                </div>
+                            @endif
                             <p class="mt-10 text-gray-500 text-sm">Mulai:
                                 <span class="font-bold text-gray-800">Rp30,000</span>
                                 <span class="text-gray-400 font-thin text-sm">/ jam</span>

@@ -100,6 +100,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->group(func
     Route::get('/venue', [AdminVenueController::class, 'index'])->name('admin.venue.index');
     Route::get('/venue/edit', [AdminVenueController::class, 'edit'])->name('admin.venue.edit');
     Route::put('/venue/update', [AdminVenueController::class, 'update'])->name('admin.venue.update');
+    Route::post('/venue/toggle-status', [AdminVenueController::class, 'toggleStatus'])->name('admin.venue.toggle-status');
 
     // Revenue management routes
     Route::get('/revenues', [RevenueController::class, 'index'])->name('admin.revenues.index');

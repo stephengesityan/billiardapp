@@ -12,7 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Run venue reopen check every day at 00:01
+        $schedule->command('venues:reopen')
+                 ->dailyAt('00:01')
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**
