@@ -127,7 +127,7 @@
                     </a>
                 </nav>
 
-                <div x-show="sidebarOpen"
+                {{-- <div x-show="sidebarOpen"
                     class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2 mt-6">
                     Sistem
                 </div>
@@ -153,7 +153,7 @@
                         </svg>
                         <span x-show="sidebarOpen">Pengaturan</span>
                     </a>
-                </nav>
+                </nav> --}}
             </div>
 
             <!-- User Profile -->
@@ -179,8 +179,8 @@
                     <!-- Dropdown -->
                     <div x-show="open" @click.outside="open = false"
                         class="absolute bottom-full left-0 mb-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 py-1 dropdown-transition">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                        {{-- <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a> --}}
                         <div class="border-t border-gray-200 my-1"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

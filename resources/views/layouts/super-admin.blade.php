@@ -223,14 +223,14 @@
                                     <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name ?? 'Admin' }}</p>
                                     <p class="text-xs text-gray-500">{{ auth()->user()->email ?? 'admin@example.com' }}</p>
                                 </div>
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                {{-- <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                     <i class="fas fa-user mr-3 text-gray-400"></i>
                                     Profile Settings
                                 </a>
                                 <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                     <i class="fas fa-cog mr-3 text-gray-400"></i>
                                     Account Settings
-                                </a>
+                                </a> --}}
                                 <div class="border-t border-gray-100 mt-2 pt-2">
                                     <a href="{{ route('logout') }}"
                                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();"

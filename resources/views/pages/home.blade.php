@@ -51,7 +51,7 @@
                 @forelse ($venues as $venue)
                     <a href="{{ route('venue', ['venueName' => $venue->name]) }}"
                         class="flex flex-col h-full border border-gray-400 rounded-lg overflow-hidden">
-                        <img src="{{ $venue->image }}" alt="{{ $venue->name }}" class="w-full h-48 object-cover">
+                        <img src="{{ Storage::url($venue->image) }}" alt="{{ $venue->name }}" class="w-full h-48 object-cover">
                         <div class="flex-grow px-4 py-2">
                             <h3 class="text-sm text-gray-400 font-semibold mb-2">Venue</h3>
                             <h1 class="text-xl text-gray-800 font-semibold">{{ $venue->name }}</h1>

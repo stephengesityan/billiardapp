@@ -11,9 +11,9 @@
                 <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left mr-1"></i> Kembali
                 </a>
-                <a href="{{ route('admin.bookings.export') }}" class="btn btn-success">
+                {{-- <a href="{{ route('admin.bookings.export') }}" class="btn btn-success">
                     <i class="fas fa-file-excel mr-1"></i> Export Excel
-                </a>
+                </a> --}}
             </div>
         </div>
 

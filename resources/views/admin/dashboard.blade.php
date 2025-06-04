@@ -15,8 +15,8 @@
                 </div>
             </div>
 
-            <!-- Stats Cards - Row 1 -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <!-- Stats Cards - Row 1: Revenue and Booking Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Today's Revenue -->
                 <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500 hover:shadow-md transition">
                     <div class="flex justify-between items-start">
@@ -59,57 +59,71 @@
                                 class="font-semibold text-green-500">{{ $paidBookings }}</span></p>
                     </div>
                 </div>
+            </div>
 
-                <!-- Total Tables -->
+            <!-- Row 2: Top 5 Pelanggan Loyal Leaderboard - Full Width -->
+            <div class="mb-6">
                 <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500 hover:shadow-md transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Total Meja</p>
-                            <p class="text-2xl font-bold text-gray-800">{{ $totalTables }}</p>
-                        </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-gray-800">🏆 Top 5 Pelanggan Loyal</h2>
                         <div class="text-purple-500 p-2 bg-purple-50 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 6h16M4 12h16M4 18h7" />
+                                    d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                     </div>
-                    <div class="flex mt-2 space-x-4">
-                        <p class="text-xs text-gray-500">Tersedia: <span
-                                class="font-semibold text-green-500">{{ $availableTables }}</span></p>
-                        <p class="text-xs text-gray-500">Digunakan: <span
-                                class="font-semibold text-red-500">{{ $usedTables }}</span></p>
-                    </div>
-                </div>
 
-                <!-- Table Usage -->
-                <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-amber-500 hover:shadow-md transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Penggunaan Meja</p>
-                            <p class="text-2xl font-bold text-gray-800">
-                                {{ $totalTables > 0 ? round(($usedTables / $totalTables) * 100) : 0 }}%
-                            </p>
+                    @if(!empty($topUsers) && count($topUsers) > 0)
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            @foreach($topUsers->take(5) as $index => $user)
+                                <div
+                                    class="flex flex-col items-center p-4 {{ $index === 0 ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300' : ($index === 1 ? 'bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-300' : 'bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300') }} rounded-lg text-center">
+                                    <div class="mb-3">
+                                        @if($index === 0)
+                                            <span
+                                                class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 text-white rounded-full text-2xl font-bold shadow-lg">🥇</span>
+                                        @elseif($index === 1)
+                                            <span
+                                                class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-gray-300 to-gray-500 text-white rounded-full text-2xl font-bold shadow-lg">🥈</span>
+                                        @else
+                                            <span
+                                                class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 text-white rounded-full text-2xl font-bold shadow-lg">🥉</span>
+                                        @endif
+                                    </div>
+                                    <div class="mb-2">
+                                        <h3 class="font-bold text-sm text-gray-800 mb-1">{{ Str::limit($user['user_name'], 12) }}
+                                        </h3>
+                                        <div class="text-xs text-gray-600">
+                                            Ranking #{{ $index + 1 }}
+                                        </div>
+                                    </div>
+                                    <div class="bg-white rounded-full px-3 py-1 shadow-sm">
+                                        <p class="text-lg font-bold text-gray-800">{{ $user['booking_count'] }}</p>
+                                        <p class="text-xs text-gray-500">Booking</p>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                        <div class="text-amber-500 p-2 bg-amber-50 rounded-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
+                    @else
+                        <div class="text-center py-8">
+                            <div class="text-gray-400 mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <p class="text-gray-500 text-sm">Belum ada data pelanggan loyal</p>
                         </div>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-3">
-                        <div class="bg-amber-500 h-2.5 rounded-full"
-                            style="width: {{ $totalTables > 0 ? ($usedTables / $totalTables) * 100 : 0 }}%"></div>
-                    </div>
+                    @endif
                 </div>
             </div>
 
-            <!-- Main Performance & Trends Section -->
+            <!-- Main Performance Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <!-- Monthly Revenue Chart - MOVED UP (was 6 months, now showing 12 months) -->
+                <!-- Monthly Revenue Chart -->
                 <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="font-semibold text-lg">Tren Pendapatan Bulanan</h2>
@@ -142,10 +156,11 @@
                                                 <p class="font-medium text-gray-800">{{ $booking->user->name }}</p>
                                                 <div class="flex items-center text-sm text-gray-500">
                                                     <span class="mr-2">{{ $booking->table->name }}</span>
-                                                    <span class="text-xs px-2 py-0.5 rounded-full {{ 
-                                                                        $booking->status === 'paid' ? 'bg-green-100 text-green-800' :
+                                                    <span
+                                                        class="text-xs px-2 py-0.5 rounded-full {{ 
+                                                                                                                                                                                                $booking->status === 'paid' ? 'bg-green-100 text-green-800' :
                                 ($booking->status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800') 
-                                                                    }}">
+                                                                                                                                                                                            }}">
                                                         {{ ucfirst($booking->status) }}
                                                     </span>
                                                 </div>
@@ -169,21 +184,13 @@
                     <div class="h-80" id="weeklyRevenueChart"></div>
                 </div>
 
-                <!-- Table Revenue Performance - MOVED UP -->
+                <!-- Table Revenue Performance -->
                 <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="font-semibold text-lg">Performa Pendapatan per Meja (Bulan Ini)</h2>
                     </div>
                     <div class="h-80" id="tableRevenueChart"></div>
                 </div>
-            </div>
-
-            <!-- Customer Insights Section -->
-            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="font-semibold text-lg">Top 5 Pelanggan Loyal</h2>
-                </div>
-                <div class="h-80" id="topUsersChart"></div>
             </div>
         </div>
     </div>
@@ -192,7 +199,7 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                // Monthly Revenue Chart - ENHANCED TO SHOW 12 MONTHS
+                // Monthly Revenue Chart
                 var monthlyRevenueData = @json($lastSixMonthsRevenue);
 
                 var monthlyRevenueOptions = {
@@ -336,7 +343,7 @@
                 var chart = new ApexCharts(document.querySelector("#weeklyRevenueChart"), options);
                 chart.render();
 
-                // Table Revenue Performance Chart - ENHANCED WITH IMPROVED VISUALS
+                // Table Revenue Performance Chart
                 var tableRevenueData = @json($tableRevenue);
 
                 // Verifikasi data tersedia dan lengkap
@@ -431,95 +438,6 @@
 
                     var tableRevenueChart = new ApexCharts(document.querySelector("#tableRevenueChart"), tableRevenueOptions);
                     tableRevenueChart.render();
-                }
-
-                // Top 5 Users Chart - ENHANCED WITH IMPROVED VISUALS
-                var topUsersData = @json($topUsers);
-
-                // Verifikasi data tersedia dan lengkap
-                if (!topUsersData || topUsersData.length === 0) {
-                    document.getElementById("topUsersChart").innerHTML =
-                        '<div class="flex items-center justify-center h-full"><p class="text-gray-500">Tidak ada data tersedia</p></div>';
-                } else {
-                    var topUsersOptions = {
-                        series: [{
-                            name: 'Jumlah Booking',
-                            data: topUsersData.map(item => item.booking_count)
-                        }],
-                        chart: {
-                            type: 'bar',
-                            height: 300,
-                            toolbar: {
-                                show: false
-                            }
-                        },
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 4,
-                                horizontal: true,
-                                distributed: true,
-                                dataLabels: {
-                                    position: 'top'
-                                }
-                            }
-                        },
-                        colors: ['#8b5cf6', '#6366f1', '#4f46e5', '#4338ca', '#3730a3'],
-                        dataLabels: {
-                            enabled: true,
-                            formatter: function (val) {
-                                return val + ' booking';
-                            },
-                            style: {
-                                fontSize: '12px',
-                                colors: ['#304758']
-                            },
-                            offsetX: 30
-                        },
-                        xaxis: {
-                            categories: topUsersData.map(item => item.user_name),
-                            labels: {
-                                style: {
-                                    fontSize: '12px'
-                                }
-                            }
-                        },
-                        yaxis: {
-                            title: {
-                                text: 'Pelanggan'
-                            }
-                        },
-                        tooltip: {
-                            y: {
-                                formatter: function (val) {
-                                    return val + ' booking';
-                                }
-                            }
-                        },
-                        fill: {
-                            opacity: 1,
-                            type: 'gradient',
-                            gradient: {
-                                shade: 'dark',
-                                type: "horizontal",
-                                shadeIntensity: 0.5,
-                                inverseColors: true,
-                                opacityFrom: 1,
-                                opacityTo: 0.8,
-                                stops: [0, 100]
-                            }
-                        },
-                        title: {
-                            text: 'Pelanggan dengan Booking Terbanyak',
-                            align: 'center',
-                            style: {
-                                fontSize: '18px',
-                                fontWeight: 'medium'
-                            }
-                        }
-                    };
-
-                    var topUsersChart = new ApexCharts(document.querySelector("#topUsersChart"), topUsersOptions);
-                    topUsersChart.render();
                 }
             });
         </script>

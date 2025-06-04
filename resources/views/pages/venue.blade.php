@@ -1,8 +1,25 @@
 @extends('layouts.main')
 @section('content')
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Loading Overlay -->
+    <div x-data="{ show: false }" x-show="show" x-cloak x-on:show-loading.window="show = true"
+        x-on:hide-loading.window="show = false"
+        class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 shadow-xl">
+            <div class="flex items-center space-x-3">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="text-gray-700">Memproses booking...</span>
+            </div>
+        </div>
+    </div>
+
     <div class="min-h-96 mx-4 md:w-3/4 md:mx-auto">
         <div class="mb-6">
-            <img src="{{ asset($venue['image']) }}" alt="{{ $venue['name'] }}" class="w-full rounded-lg mb-4 mt-8">
+            <img src="{{ Storage::url($venue['image']) }}" alt="{{ $venue['name'] }}"
+                class="w-full h-full object-cover rounded-lg mb-4 mt-8" />
+
             <h1 class="text-xl text-gray-800 font-semibold">{{ $venue['name'] }}</h1>
             <p class="text-sm text-gray-500">{{ $venue['location'] }}</p>
         </div>
@@ -140,17 +157,171 @@
     <script src="https://app.sandbox.midtrans.com/snap/snap.js"
         data-client-key="{{ config('midtrans.client_key') }}"></script>
     <script>
+        // Toast Notification Function
+        function showToast(message, type = 'info', duration = 5000) {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const bgColor = {
+                'success': 'bg-green-500',
+                'error': 'bg-red-500',
+                'warning': 'bg-yellow-500',
+                'info': 'bg-blue-500'
+            }[type] || 'bg-blue-500';
+
+            const icon = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            }[type] || 'fa-info-circle';
+
+            toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 transform transition-all duration-300 translate-x-full opacity-0`;
+            toast.innerHTML = `
+                                        <i class="fas ${icon}"></i>
+                                        <span class="flex-1">${message}</span>
+                                        <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    `;
+
+            toastContainer.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            }, 100);
+
+            // Auto remove
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // Modal Notification Function
+        function showModal(title, message, type = 'info', callback = null) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+
+            const iconColor = {
+                'success': 'text-green-500',
+                'error': 'text-red-500',
+                'warning': 'text-yellow-500',
+                'info': 'text-blue-500'
+            }[type] || 'text-blue-500';
+
+            const icon = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            }[type] || 'fa-info-circle';
+
+            modal.innerHTML = `
+                                        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
+                                            <div class="flex items-center space-x-3 mb-4">
+                                                <i class="fas ${icon} text-2xl ${iconColor}"></i>
+                                                <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+                                            </div>
+                                            <p class="text-gray-600 mb-6">${message}</p>
+                                            <div class="flex justify-end space-x-3">
+                                                <button onclick="this.closest('.fixed').remove(); ${callback ? callback + '()' : ''}" 
+                                                        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+                                                    OK
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+
+            document.body.appendChild(modal);
+
+            // Close on backdrop click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                    if (callback) callback();
+                }
+            });
+        }
+
+        // Confirmation Modal Function
+        function showConfirmModal(title, message, onConfirm, onCancel = null) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+
+            modal.innerHTML = `
+                                        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
+                                            <div class="flex items-center space-x-3 mb-4">
+                                                <i class="fas fa-question-circle text-2xl text-yellow-500"></i>
+                                                <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+                                            </div>
+                                            <p class="text-gray-600 mb-6">${message}</p>
+                                            <div class="flex justify-end space-x-3">
+                                                <button id="cancelBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors">
+                                                    Batal
+                                                </button>
+                                                <button id="confirmBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
+                                                    Ya, Hapus
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+
+            document.body.appendChild(modal);
+
+            const confirmBtn = modal.querySelector('#confirmBtn');
+            const cancelBtn = modal.querySelector('#cancelBtn');
+
+            confirmBtn.addEventListener('click', () => {
+                modal.remove();
+                if (onConfirm) onConfirm();
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                modal.remove();
+                if (onCancel) onCancel();
+            });
+
+            // Close on backdrop click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                    if (onCancel) onCancel();
+                }
+            });
+        }
+
         // Custom event for refreshing pending bookings across components
         const refreshPendingBookingsEvent = new Event('refresh-pending-bookings');
 
-        function updateClock() {
+        // Tambahkan fungsi helper untuk mendapatkan tanggal Jakarta yang konsisten
+        function getJakartaDate() {
             const now = new Date();
-            const options = { timeZone: 'Asia/Jakarta', hour12: false };
-            const timeFormatter = new Intl.DateTimeFormat('id-ID', { ...options, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('realTimeClock').textContent = timeFormatter.format(now);
+            // Buat objek Date dengan timezone Jakarta
+            const jakartaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+            return jakartaTime;
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+
+        function getJakartaDateString() {
+            const jakartaTime = getJakartaDate();
+            const year = jakartaTime.getFullYear();
+            const month = String(jakartaTime.getMonth() + 1).padStart(2, '0');
+            const day = String(jakartaTime.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function updateClock() {
+            const jakartaTime = getJakartaDate();
+            const timeFormatter = new Intl.DateTimeFormat('id-ID', {
+                timeZone: 'Asia/Jakarta',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            document.getElementById('realTimeClock').textContent = timeFormatter.format(jakartaTime);
+        }
 
         // Format functions for pending bookings
         function formatDateTime(dateTimeStr) {
@@ -244,9 +415,13 @@
 
                 resumeBooking(bookingId) {
                     this.isLoadingPending = true;
+                    window.dispatchEvent(new CustomEvent('show-loading'));
+
                     fetch(`/booking/pending/${bookingId}/resume`)
                         .then(response => response.json())
                         .then(data => {
+                            window.dispatchEvent(new CustomEvent('hide-loading'));
+
                             if (data.success) {
                                 console.log("Opening payment with snap token:", data.snap_token);
                                 // Open Snap payment
@@ -255,61 +430,68 @@
                                         this.createBookingAfterPayment(data.order_id, result);
                                     },
                                     onPending: (result) => {
-                                        alert('Pembayaran pending, silahkan selesaikan pembayaran');
+                                        showToast('Pembayaran pending, silahkan selesaikan pembayaran', 'warning');
                                         this.isLoadingPending = false;
                                     },
                                     onError: (result) => {
-                                        alert('Pembayaran gagal');
+                                        showToast('Pembayaran gagal', 'error');
                                         this.isLoadingPending = false;
                                     },
                                     onClose: () => {
-                                        alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                                        showToast('Anda menutup popup tanpa menyelesaikan pembayaran', 'warning');
                                         this.isLoadingPending = false;
                                     }
                                 });
                             } else {
-                                alert(data.message);
+                                showToast(data.message, 'error');
                                 this.isLoadingPending = false;
                                 // Refresh pending bookings list
                                 this.fetchPendingBookings();
                             }
                         })
                         .catch(error => {
+                            window.dispatchEvent(new CustomEvent('hide-loading'));
                             console.error('Error resuming booking:', error);
-                            alert('Gagal melanjutkan booking');
+                            showToast('Gagal melanjutkan booking', 'error');
                             this.isLoadingPending = false;
                         });
                 },
 
                 deletePendingBooking(bookingId) {
-                    if (confirm('Apakah Anda yakin ingin menghapus booking ini?')) {
-                        this.isLoadingPending = true;
-                        fetch(`/booking/pending/${bookingId}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            }
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    alert('Booking berhasil dihapus');
-                                    this.fetchPendingBookings();
-                                } else {
-                                    alert(data.message);
+                    showConfirmModal(
+                        'Konfirmasi Hapus',
+                        'Apakah Anda yakin ingin menghapus booking ini?',
+                        () => {
+                            this.isLoadingPending = true;
+                            fetch(`/booking/pending/${bookingId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                 }
-                                this.isLoadingPending = false;
                             })
-                            .catch(error => {
-                                console.error('Error deleting booking:', error);
-                                alert('Gagal menghapus booking');
-                                this.isLoadingPending = false;
-                            });
-                    }
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        showToast('Booking berhasil dihapus', 'success');
+                                        this.fetchPendingBookings();
+                                    } else {
+                                        showToast(data.message, 'error');
+                                    }
+                                    this.isLoadingPending = false;
+                                })
+                                .catch(error => {
+                                    console.error('Error deleting booking:', error);
+                                    showToast('Gagal menghapus booking', 'error');
+                                    this.isLoadingPending = false;
+                                });
+                        }
+                    );
                 },
 
                 createBookingAfterPayment(orderId, paymentResult) {
+                    window.dispatchEvent(new CustomEvent('show-loading'));
+
                     fetch('/booking', {
                         method: 'POST',
                         headers: {
@@ -332,18 +514,22 @@
                             return res.json();
                         })
                         .then(data => {
-                            alert('Pembayaran dan booking berhasil!');
+                            window.dispatchEvent(new CustomEvent('hide-loading'));
+                            showToast('Pembayaran dan booking berhasil!', 'success');
                             this.isLoadingPending = false;
 
                             // Refresh pending bookings list
                             this.fetchPendingBookings();
 
                             // Redirect to booking history
-                            window.location.href = '/booking/history';
+                            setTimeout(() => {
+                                window.location.href = '/booking/history';
+                            }, 2000);
                         })
                         .catch(err => {
+                            window.dispatchEvent(new CustomEvent('hide-loading'));
                             console.error('Booking error:', err);
-                            alert('Pembayaran berhasil tetapi gagal menyimpan booking: ' + err.message);
+                            showToast('Pembayaran berhasil tetapi gagal menyimpan booking: ' + err.message, 'error');
                             this.isLoadingPending = false;
                         });
                 }
@@ -375,10 +561,13 @@
                 },
 
                 async checkBookedSchedules() {
-                    const today = new Date().toISOString().split('T')[0];
+                    // Gunakan tanggal Jakarta yang konsisten
+                    const today = getJakartaDateString();
                     try {
                         const response = await fetch(`/booking/schedules?table_id=${this.tableId}&date=${today}`);
                         this.bookedSchedules = await response.json();
+                        console.log('Checking schedules for date:', today, 'Table:', this.tableId);
+                        console.log('Booked schedules:', this.bookedSchedules);
                     } catch (error) {
                         console.error('Error checking booked schedules:', error);
                     }
@@ -386,30 +575,31 @@
 
                 initiateBooking(tableId, tableName) {
                     if (!this.isLoggedIn) {
-                        alert('Silahkan login terlebih dahulu untuk melakukan booking.');
+                        showToast('Silahkan login terlebih dahulu untuk melakukan booking', 'warning');
                         return;
                     }
                     const selectedTime = this.selectedTime;
                     const selectedDuration = this.selectedDuration;
 
                     if (!selectedTime || !selectedDuration) {
-                        alert('Please select both time and duration');
+                        showToast('Please select both time and duration', 'warning');
                         return;
                     }
 
-                    // Validasi jam
-                    const now = new Date();
-                    const selectedDateTime = new Date();
+                    // Validasi jam menggunakan waktu Jakarta
+                    const now = getJakartaDate();
+                    const selectedDateTime = new Date(now);
                     const [selectedHour, selectedMinute] = selectedTime.split(':').map(Number);
                     selectedDateTime.setHours(selectedHour, selectedMinute, 0, 0);
 
                     // Uncomment this for production to prevent booking past times
                     if (selectedDateTime <= now) {
-                        alert('Jam yang dipilih sudah lewat. Silakan pilih jam yang masih tersedia.');
+                        showToast('Jam yang dipilih sudah lewat. Silakan pilih jam yang masih tersedia.', 'warning');
                         return;
                     }
 
                     this.isLoading = true;
+                    window.dispatchEvent(new CustomEvent('show-loading'));
 
                     // Hitung end time
                     const bookingStart = new Date();
@@ -419,18 +609,18 @@
 
                     const endTimeFormatted = ('0' + bookingEnd.getHours()).slice(-2) + ':' + ('0' + bookingEnd.getMinutes()).slice(-2);
 
-                    // PERUBAHAN DI SINI: Gunakan tanggal WIB dengan menambahkan offset +7 jam
-                    const nowUtc = new Date();
-                    const jakartaTime = new Date(nowUtc.getTime() + (7 * 60 * 60 * 1000));
-                    const today = jakartaTime.toISOString().split('T')[0];
+                    // Gunakan tanggal Jakarta yang konsisten
+                    const today = getJakartaDateString();
 
                     const start_time = `${today} ${selectedTime}`;
                     const end_time = `${today} ${endTimeFormatted}`;
 
+                    console.log('Booking data:', { start_time, end_time, today });
+
                     // Track that we're creating a new booking
                     window.creatingNewBooking = true;
 
-                    // Kirim ke backend untuk membuat payment intent (tanpa membuat booking dulu)
+                    // Kirim ke backend untuk membuat payment intent
                     fetch('/booking/payment-intent', {
                         method: 'POST',
                         headers: {
@@ -446,52 +636,72 @@
                         .then(res => {
                             if (!res.ok) {
                                 return res.json().then(err => {
-                                    throw new Error(err.message || 'Gagal membuat payment intent');
+                                    throw new Error(err.message || 'Gagal membuat booking');
                                 });
                             }
                             return res.json();
                         })
                         .then(data => {
+                            window.dispatchEvent(new CustomEvent('hide-loading'));
+
+                            // Cek apakah ini response dari admin direct booking
+                            if (data.booking_id && data.message === 'Booking created successfully') {
+                                // Admin booking berhasil tanpa payment
+                                showToast('Booking berhasil dibuat!', 'success');
+                                this.isLoading = false;
+
+                                // Reset form
+                                this.selectedTime = '';
+                                this.selectedDuration = '';
+                                this.open = false;
+
+                                // Refresh halaman atau komponen yang diperlukan
+                                this.checkBookedSchedules();
+
+                                // Refresh pending bookings jika ada
+                                document.dispatchEvent(refreshPendingBookingsEvent);
+
+                                return; // Exit early untuk admin booking
+                            }
+
+                            // Flow normal untuk customer (membutuhkan payment)
                             if (!data.snap_token) {
                                 throw new Error('Snap token tidak ditemukan');
                             }
 
-                            // Buka Snap Midtrans
+                            // Track bahwa kita sedang membuat booking baru
+                            window.creatingNewBooking = true;
+
+                            // Buka Snap Midtrans untuk customer
                             window.snap.pay(data.snap_token, {
                                 onSuccess: (result) => {
                                     this.createBookingAfterPayment(data.order_id, result);
                                 },
                                 onPending: (result) => {
-                                    alert('Pembayaran pending, silahkan selesaikan pembayaran');
+                                    showToast('Pembayaran pending, silahkan selesaikan pembayaran', 'warning');
                                     this.isLoading = false;
                                 },
                                 onError: (result) => {
-                                    alert('Pembayaran gagal');
+                                    showToast('Pembayaran gagal', 'error');
                                     this.isLoading = false;
-                                    // Reset the state
                                     window.creatingNewBooking = false;
                                 },
                                 onClose: () => {
-                                    alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                                    showToast('Anda menutup popup tanpa menyelesaikan pembayaran', 'warning');
                                     this.isLoading = false;
-
-                                    // Set flag to indicate payment popup was just closed
                                     window.justClosedPayment = true;
 
-                                    // Only trigger the refresh if we were creating a new booking
                                     if (window.creatingNewBooking) {
-                                        // Reset the flag
                                         window.creatingNewBooking = false;
-
-                                        // Dispatch the custom event to refresh pending bookings
                                         document.dispatchEvent(refreshPendingBookingsEvent);
                                     }
                                 }
                             });
                         })
                         .catch(err => {
-                            console.error('Payment intent error:', err);
-                            alert('Gagal membuat payment: ' + err.message);
+                            window.dispatchEvent(new CustomEvent('hide-loading'));
+                            console.error('Booking error:', err);
+                            showToast('Gagal membuat booking: ' + err.message, 'error');
                             this.isLoading = false;
                             window.creatingNewBooking = false;
                         });
@@ -499,6 +709,8 @@
 
                 // Fungsi untuk menyimpan booking setelah pembayaran berhasil
                 createBookingAfterPayment(orderId, paymentResult) {
+                    window.dispatchEvent(new CustomEvent('show-loading'));
+
                     fetch('/booking', {
                         method: 'POST',
                         headers: {
@@ -521,7 +733,8 @@
                             return res.json();
                         })
                         .then(data => {
-                            alert('Pembayaran dan booking berhasil!');
+                            window.dispatchEvent(new CustomEvent('hide-loading'));
+                            showToast('Pembayaran dan booking berhasil!', 'success');
 
                             // Reset the flag
                             window.creatingNewBooking = false;
@@ -530,11 +743,14 @@
                             document.dispatchEvent(new CustomEvent('booking-completed'));
 
                             // Redirect to booking history page
-                            window.location.href = '/booking/history';
+                            setTimeout(() => {
+                                window.location.href = '/booking/history';
+                            }, 2000);
                         })
                         .catch(err => {
+                            window.dispatchEvent(new CustomEvent('hide-loading'));
                             console.error('Booking error:', err);
-                            alert('Pembayaran berhasil tetapi gagal menyimpan booking: ' + err.message);
+                            showToast('Pembayaran berhasil tetapi gagal menyimpan booking: ' + err.message, 'error');
                             this.isLoading = false;
                             window.creatingNewBooking = false;
                         });
@@ -546,5 +762,9 @@
                 }
             }));
         });
+
+        // Initialize clock update
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
     </script>
 @endsection
