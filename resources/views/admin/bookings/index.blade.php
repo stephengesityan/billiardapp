@@ -33,7 +33,7 @@
                         </div>
                     </div>
 
-                    <div class="w-full md:w-1/4">
+                    {{-- <div class="w-full md:w-1/4">
                         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                         <select name="status" id="status"
                             class="form-select w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200">
@@ -43,7 +43,7 @@
                             <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan
                             </option>
                         </select>
-                    </div>
+                    </div> --}}
 
                     <div class="w-full md:w-1/4">
                         <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>

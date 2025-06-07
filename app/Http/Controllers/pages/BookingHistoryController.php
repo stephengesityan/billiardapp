@@ -12,7 +12,7 @@ class BookingHistoryController extends Controller
     {
         $bookings = Booking::where('user_id', Auth::id())
             ->with(['table.venue'])
-            ->orderBy('start_time', 'desc')
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
             
         return view('pages.booking-history', compact('bookings'));

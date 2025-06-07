@@ -55,7 +55,7 @@ class TableController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
-            'status' => 'required|in:Available,Booked,Unavailable',
+            // 'status' => 'required|in:Available,Booked,Unavailable',
             'price_per_hour' => 'required|numeric|min:0',
         ]);
 
@@ -68,7 +68,7 @@ class TableController extends Controller
         Table::create([
             'name' => $request->name,
             'brand' => $request->brand,
-            'status' => $request->status,
+            // 'status' => $request->status,
             'price_per_hour' => $request->price_per_hour,
             'venue_id' => auth()->user()->venue_id,
         ]);
@@ -101,7 +101,7 @@ class TableController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
-            'status' => 'required|in:Available,Booked,Unavailable',
+            // 'status' => 'required|in:Available,Booked,Unavailable',
             'price_per_hour' => 'required|numeric|min:0',
         ]);
 
@@ -116,7 +116,7 @@ class TableController extends Controller
         $table->update([
             'name' => $request->name,
             'brand' => $request->brand,
-            'status' => $request->status,
+            // 'status' => $request->status,
             'price_per_hour' => $request->price_per_hour,
         ]);
 

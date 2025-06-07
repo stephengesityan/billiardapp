@@ -49,19 +49,19 @@
                         </div>
                     </div>
 
-                    <div>
+                    {{-- <div>
                         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                         <select id="status" name="status"
                             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('status') border-red-500 @enderror">
-                            <option value="Available" {{ old('status') === 'Available' ? 'selected' : '' }}>Available</option>
-                            <option value="Booked" {{ old('status') === 'Booked' ? 'selected' : '' }}>Booked</option>
-                            <option value="Unavailable" {{ old('status') === 'Unavailable' ? 'selected' : '' }}>Unavailable
+                            <option value="Available" {{ old('status')==='Available' ? 'selected' : '' }}>Available</option>
+                            <option value="Booked" {{ old('status')==='Booked' ? 'selected' : '' }}>Booked</option>
+                            <option value="Unavailable" {{ old('status')==='Unavailable' ? 'selected' : '' }}>Unavailable
                             </option>
                         </select>
                         @error('status')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
-                    </div>
+                    </div> --}}
 
                     <div class="flex justify-end space-x-3">
                         <a href="{{ route('admin.tables.index') }}"

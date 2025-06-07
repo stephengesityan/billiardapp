@@ -15,7 +15,15 @@ class BookingsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Booking::with(['table', 'user']);
+        // Ambil venue_id dari admin yang sedang login
+        // Sesuaikan dengan struktur database kamu:
+        $adminVenueId = auth()->user()->venue_id; // Asumsi admin punya kolom venue_id
+        
+        // Query booking dengan filter venue terlebih dahulu
+        $query = Booking::with(['table', 'user'])
+            ->whereHas('table', function ($q) use ($adminVenueId) {
+                $q->where('venue_id', $adminVenueId);
+            });
 
         // Search functionality
         if ($request->has('search') && !empty($request->search)) {
@@ -70,14 +78,30 @@ class BookingsController extends Controller
 
     public function show($id)
     {
-        $booking = Booking::with(['table', 'user'])->findOrFail($id);
+        // Pastikan booking yang dilihat adalah milik venue admin
+        $adminVenueId = auth()->user()->venue_id;
+        
+        $booking = Booking::with(['table', 'user'])
+            ->whereHas('table', function ($q) use ($adminVenueId) {
+                $q->where('venue_id', $adminVenueId);
+            })
+            ->findOrFail($id);
+            
         return view('admin.bookings.show', compact('booking'));
     }
 
     public function edit($id)
     {
-        $booking = Booking::findOrFail($id);
-        $tables = Table::all();
+        $adminVenueId = auth()->user()->venue_id;
+        
+        // Pastikan booking yang diedit adalah milik venue admin
+        $booking = Booking::whereHas('table', function ($q) use ($adminVenueId) {
+            $q->where('venue_id', $adminVenueId);
+        })->findOrFail($id);
+        
+        // Hanya tampilkan tables dari venue admin
+        $tables = Table::where('venue_id', $adminVenueId)->get();
+        
         return view('admin.bookings.edit', compact('booking', 'tables'));
     }
 
@@ -89,7 +113,18 @@ class BookingsController extends Controller
             'end_time' => 'required|date|after:start_time',
         ]);
 
-        $booking = Booking::findOrFail($id);
+        $adminVenueId = auth()->user()->venue_id;
+        
+        // Pastikan booking yang diupdate adalah milik venue admin
+        $booking = Booking::whereHas('table', function ($q) use ($adminVenueId) {
+            $q->where('venue_id', $adminVenueId);
+        })->findOrFail($id);
+        
+        // Validasi tambahan: pastikan table_id yang dipilih juga milik venue admin
+        $table = Table::where('id', $request->table_id)
+            ->where('venue_id', $adminVenueId)
+            ->firstOrFail();
+        
         $booking->update($request->all());
 
         return redirect()->route('admin.bookings.index')
@@ -98,7 +133,12 @@ class BookingsController extends Controller
 
     public function complete($id)
     {
-        $booking = Booking::findOrFail($id);
+        $adminVenueId = auth()->user()->venue_id;
+        
+        $booking = Booking::whereHas('table', function ($q) use ($adminVenueId) {
+            $q->where('venue_id', $adminVenueId);
+        })->findOrFail($id);
+        
         $booking->status = 'selesai';
         $booking->save();
 
@@ -108,7 +148,12 @@ class BookingsController extends Controller
 
     public function cancel($id)
     {
-        $booking = Booking::findOrFail($id);
+        $adminVenueId = auth()->user()->venue_id;
+        
+        $booking = Booking::whereHas('table', function ($q) use ($adminVenueId) {
+            $q->where('venue_id', $adminVenueId);
+        })->findOrFail($id);
+        
         $booking->status = 'cancelled';
         $booking->save();
 
@@ -118,7 +163,10 @@ class BookingsController extends Controller
 
     public function export(Request $request)
     {
+        $adminVenueId = auth()->user()->venue_id;
         $filename = 'bookings-' . Carbon::now()->format('Y-m-d') . '.xlsx';
-        return Excel::download(new BookingsExport($request), $filename);
+        
+        // Pass venue_id ke export class jika diperlukan
+        return Excel::download(new BookingsExport($request, $adminVenueId), $filename);
     }
 }

@@ -52,14 +52,29 @@
 
                             <div x-show="open" @click.away="open = false" x-transition
                                 class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg py-2 z-50">
+
                                 <a href="{{ route('booking.history') }}"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     Riwayat Booking
                                 </a>
-                                <a href="{{ route('account.settings') }}"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    Pengaturan Akun
-                                </a>
+
+                                @if (Auth::user()->role === 'user')
+                                    <a href="{{ route('account.settings') }}"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        Pengaturan Akun
+                                    </a>
+                                @elseif (Auth::user()->role === 'admin')
+                                    <a href="{{ url('/admin') }}"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        Halaman Admin
+                                    </a>
+                                @elseif (Auth::user()->role === 'superadmin')
+                                    <a href="{{ url('/superadmin') }}"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        Halaman Superadmin
+                                    </a>
+                                @endif
+
                                 @if (Auth::user()->email_verified_at === null)
                                     <a href="{{ route('verification.notice') }}"
                                         class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -67,6 +82,7 @@
                                         Verifikasi Email
                                     </a>
                                 @endif
+
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit"

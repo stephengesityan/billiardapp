@@ -21,7 +21,7 @@
                 class="w-full h-full object-cover rounded-lg mb-4 mt-8" />
 
             <h1 class="text-xl text-gray-800 font-semibold">{{ $venue['name'] }}</h1>
-            <p class="text-sm text-gray-500">{{ $venue['location'] ?? 'Lokasi tidak tersedia' }}</p>
+            <p class="text-sm text-gray-500">{{ $venue['description'] ?? 'Tidak ada deskripsi.' }}</p>
             @if($venue['status'] === 'open')
                 {{-- Venue sedang buka - tampilkan jam operasional --}}
                 <p class="text-sm text-gray-600 mt-1">
@@ -147,21 +147,33 @@
                         </select>
 
                         <h4 class="font-semibold mb-2 mt-4">Pilih Durasi Main:</h4>
-                        <select class="w-full border p-2 rounded-lg" x-model="selectedDuration">
-                            <option value="">-- Pilih Durasi --</option>
-                            <option value="1">1 Jam</option>
-                            <option value="2">2 Jam</option>
-                            <option value="3">3 Jam</option>
-                        </select>
+                            @if ($venue['status'] === 'open')
+                                <select class="w-full border p-2 rounded-lg" x-model="selectedDuration">
+                                    <option value="">-- Pilih Durasi --</option>
+                                    <option value="1">1 Jam</option>
+                                    <option value="2">2 Jam</option>
+                                    <option value="3">3 Jam</option>
+                                    {{-- <option value="4">4 Jam</option>
+                                    <option value="5">5 Jam</option> --}}
+                                </select>
+                            @else
+                                <select class="w-full border p-2 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed" disabled>
+                                    <option value="">Venue sedang tutup</option>
+                                </select>
+                            @endif
 
-                        <button class="mt-3 px-4 py-2 bg-green-500 text-white rounded-lg w-full" :disabled="!selectedTime || !selectedDuration || isLoading"
-                            @click="initiateBooking('{{ $table['id'] }}', '{{ addslashes($table['name']) }}')">
-                            <template x-if="isLoading">
-                                <span>Loading...</span>
-                            </template>
-                            <template x-if="!isLoading">
-                                <span>Confirm Booking</span>
-                            </template>
+                            <button
+                                class="mt-3 px-4 py-2 rounded-lg w-full 
+                                    {{ $venue['status'] === 'open' ? 'bg-green-500 text-white' : 'bg-gray-400 text-gray-700 cursor-not-allowed' }}"
+                                :disabled="!selectedTime || !selectedDuration || isLoading || '{{ $venue['status'] }}' !== 'open'"
+                                @click="initiateBooking('{{ $table['id'] }}', '{{ addslashes($table['name']) }}')">
+                                
+                                <template x-if="isLoading">
+                                    <span>Loading...</span>
+                                </template>
+                                <template x-if="!isLoading">
+                                    <span>Confirm Booking</span>
+                                </template>
                         </button>
                     </div>
                 </div>
@@ -194,12 +206,12 @@
 
             toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 transform transition-all duration-300 translate-x-full opacity-0`;
             toast.innerHTML = `
-                                                                                <i class="fas ${icon}"></i>
-                                                                                <span class="flex-1">${message}</span>
-                                                                                <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
-                                                                                    <i class="fas fa-times"></i>
-                                                                                </button>
-                                                                            `;
+                                                                                                    <i class="fas ${icon}"></i>
+                                                                                                    <span class="flex-1">${message}</span>
+                                                                                                    <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
+                                                                                                        <i class="fas fa-times"></i>
+                                                                                                    </button>
+                                                                                                `;
 
             toastContainer.appendChild(toast);
 
@@ -235,20 +247,20 @@
             }[type] || 'fa-info-circle';
 
             modal.innerHTML = `
-                                                                                <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
-                                                                                    <div class="flex items-center space-x-3 mb-4">
-                                                                                        <i class="fas ${icon} text-2xl ${iconColor}"></i>
-                                                                                        <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
-                                                                                    </div>
-                                                                                    <p class="text-gray-600 mb-6">${message}</p>
-                                                                                    <div class="flex justify-end space-x-3">
-                                                                                        <button onclick="this.closest('.fixed').remove(); ${callback ? callback + '()' : ''}" 
-                                                                                                class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
-                                                                                            OK
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            `;
+                                                                                                    <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
+                                                                                                        <div class="flex items-center space-x-3 mb-4">
+                                                                                                            <i class="fas ${icon} text-2xl ${iconColor}"></i>
+                                                                                                            <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+                                                                                                        </div>
+                                                                                                        <p class="text-gray-600 mb-6">${message}</p>
+                                                                                                        <div class="flex justify-end space-x-3">
+                                                                                                            <button onclick="this.closest('.fixed').remove(); ${callback ? callback + '()' : ''}" 
+                                                                                                                    class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+                                                                                                                OK
+                                                                                                            </button>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                `;
 
             document.body.appendChild(modal);
 
@@ -267,22 +279,22 @@
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
 
             modal.innerHTML = `
-                                                                                <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
-                                                                                    <div class="flex items-center space-x-3 mb-4">
-                                                                                        <i class="fas fa-question-circle text-2xl text-yellow-500"></i>
-                                                                                        <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
-                                                                                    </div>
-                                                                                    <p class="text-gray-600 mb-6">${message}</p>
-                                                                                    <div class="flex justify-end space-x-3">
-                                                                                        <button id="cancelBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors">
-                                                                                            Batal
-                                                                                        </button>
-                                                                                        <button id="confirmBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
-                                                                                            Ya, Hapus
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            `;
+                                                                                                    <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl transform transition-all">
+                                                                                                        <div class="flex items-center space-x-3 mb-4">
+                                                                                                            <i class="fas fa-question-circle text-2xl text-yellow-500"></i>
+                                                                                                            <h3 class="text-lg font-semibold text-gray-800">${title}</h3>
+                                                                                                        </div>
+                                                                                                        <p class="text-gray-600 mb-6">${message}</p>
+                                                                                                        <div class="flex justify-end space-x-3">
+                                                                                                            <button id="cancelBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors">
+                                                                                                                Batal
+                                                                                                            </button>
+                                                                                                            <button id="confirmBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
+                                                                                                                Ya, Hapus
+                                                                                                            </button>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                `;
 
             document.body.appendChild(modal);
 
