@@ -162,6 +162,7 @@ class BookingController extends Controller
         // Validasi waktu booking dalam jam operasional venue
         $venueOpenTime = Carbon::createFromFormat('H:i:s', $table->venue->open_time)->format('H:i');
         $venueCloseTime = Carbon::createFromFormat('H:i:s', $table->venue->close_time)->format('H:i');
+        $venueCloseDateTime = Carbon::createFromFormat('Y-m-d H:i', $bookingDate . ' ' . $venueCloseTime, 'Asia/Jakarta');
         
         if ($startTime < $venueOpenTime || $startTime >= $venueCloseTime) {
             return response()->json([
@@ -171,7 +172,7 @@ class BookingController extends Controller
         }
 
         // Validasi bahwa end time tidak melebihi jam tutup venue
-        if ($endDateTime->format('H:i') > $venueCloseTime) {
+        if ($endDateTime->gt($venueCloseDateTime)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Durasi booking melebihi jam tutup venue'

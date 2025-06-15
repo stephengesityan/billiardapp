@@ -1,5 +1,5 @@
 @extends('layouts.main') @section('content') <div class="min-h-96 mx-4 md:w-3/4 md:mx-auto py-8">
-        <h1 class="text-2xl font-bold mb-6">Riwayat Booking</h1>
+        <h1 class="text-2xl font-bold mb-6">Riwayat Bookingg</h1>
 
         @if($bookings->isEmpty())
             <div class="bg-white rounded-lg shadow-md p-6 text-center">

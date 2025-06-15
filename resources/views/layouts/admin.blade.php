@@ -46,11 +46,50 @@
     </style>
 </head>
 
-<body x-data="{ sidebarOpen: true, userDropdownOpen: false }" class="bg-gray-50">
+<body x-data="{ 
+    sidebarOpen: getSidebarState(), 
+    userDropdownOpen: false,
+    toggleSidebar() {
+        this.sidebarOpen = !this.sidebarOpen;
+        saveSidebarState(this.sidebarOpen);
+    }
+}" x-init="
+    // Watch for sidebar changes and save to localStorage
+    $watch('sidebarOpen', value => saveSidebarState(value))
+" class="bg-gray-50">
+
+    <script>
+        // Function to get sidebar state from localStorage
+        function getSidebarState() {
+            const saved = localStorage.getItem('admin_sidebar_open');
+            // Default to true for desktop, false for mobile
+            if (saved === null) {
+                return window.innerWidth >= 1024; // lg breakpoint
+            }
+            return saved === 'true';
+        }
+
+        // Function to save sidebar state to localStorage
+        function saveSidebarState(isOpen) {
+            localStorage.setItem('admin_sidebar_open', isOpen.toString());
+        }
+
+        // Handle responsive behavior on window resize
+        window.addEventListener('resize', function () {
+            // Only auto-adjust if no explicit state has been saved
+            const saved = localStorage.getItem('admin_sidebar_open');
+            if (saved === null) {
+                // Auto close on mobile, open on desktop
+                const shouldOpen = window.innerWidth >= 1024;
+                Alpine.store('sidebar', { open: shouldOpen });
+            }
+        });
+    </script>
+
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar Overlay -->
-        <div x-show="sidebarOpen" @click="sidebarOpen = false"
-            class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"></div>
+        <div x-show="sidebarOpen" @click="toggleSidebar()" class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden">
+        </div>
 
         <!-- Sidebar -->
         <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-20'"
@@ -66,7 +105,7 @@
                         </a>
                     </div> --}}
                 </div>
-                <button @click="sidebarOpen = !sidebarOpen" class="p-1 rounded-md hover:bg-gray-100 focus:outline-none">
+                <button @click="toggleSidebar()" class="p-1 rounded-md hover:bg-gray-100 focus:outline-none">
                     <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -92,7 +131,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z" />
                         </svg>
                         <span x-show="sidebarOpen">Dashboard</span>
                     </a>
@@ -102,7 +141,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                d="M3 10l9-7 9 7v10a2 2 0 01-2 2h-2a2 2 0 01-2-2V14H9v6a2 2 0 01-2 2H5a2 2 0 01-2-2V10z" />
                         </svg>
                         <span x-show="sidebarOpen">Kelola Venue</span>
                     </a>
@@ -111,8 +150,9 @@
                         class="nav-item flex items-center px-3 py-2.5 rounded-lg {{ request()->routeIs('admin.tables.*') ? 'active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            <rect width="18" height="10" x="3" y="7" rx="2" ry="2" stroke-width="2"
+                                stroke="currentColor" fill="none" />
+                            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
                         </svg>
                         <span x-show="sidebarOpen">Kelola Meja</span>
                     </a>
@@ -122,18 +162,18 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                d="M8 7V3m8 4V3M5 11h14M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
                         </svg>
-                        <span x-show="sidebarOpen">Daftar Booking</span>
+                        <span x-show="sidebarOpen">Kelola Booking</span>
                     </a>
                     <a href="{{ route('admin.revenues.index') }}"
                         class="nav-item flex items-center px-3 py-2.5 rounded-lg {{ request()->routeIs('admin.revenues.*') ? 'active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                d="M12 8c-1.5 0-3 .75-3 2s1.5 2 3 2 3 .75 3 2-1.5 2-3 2m0-10v10m-6 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span x-show="sidebarOpen">Revenues</span>
+                        <span x-show="sidebarOpen">Laporan Pendapatan</span>
                     </a>
                 </nav>
 
@@ -211,7 +251,7 @@
             <!-- Top Header -->
             <header class="bg-white shadow-sm lg:hidden">
                 <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-                    <button @click="sidebarOpen = !sidebarOpen"
+                    <button @click="toggleSidebar()"
                         class="p-1 rounded-md text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 lg:hidden">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">

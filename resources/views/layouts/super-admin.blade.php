@@ -51,11 +51,62 @@
     </style>
 </head>
 
-<body x-data="{ sidebarOpen: true, userDropdownOpen: false }" class="bg-gray-50">
+<body x-data="{ 
+    sidebarOpen: getSuperAdminSidebarState(), 
+    userDropdownOpen: false,
+    toggleSidebar() {
+        this.sidebarOpen = !this.sidebarOpen;
+        saveSuperAdminSidebarState(this.sidebarOpen);
+    }
+}" x-init="
+    // Watch for sidebar changes and save to localStorage
+    $watch('sidebarOpen', value => saveSuperAdminSidebarState(value))
+" class="bg-gray-50">
+
+    <script>
+        // Function to get sidebar state from localStorage (separate key for super admin)
+        function getSuperAdminSidebarState() {
+            const saved = localStorage.getItem('superadmin_sidebar_open');
+            // Default to true for desktop, false for mobile
+            if (saved === null) {
+                return window.innerWidth >= 1024; // lg breakpoint
+            }
+            return saved === 'true';
+        }
+
+        // Function to save sidebar state to localStorage (separate key for super admin)
+        function saveSuperAdminSidebarState(isOpen) {
+            localStorage.setItem('superadmin_sidebar_open', isOpen.toString());
+        }
+
+        // Handle responsive behavior on window resize
+        window.addEventListener('resize', function () {
+            // Only auto-adjust if no explicit state has been saved
+            const saved = localStorage.getItem('superadmin_sidebar_open');
+            if (saved === null) {
+                // Auto close on mobile, open on desktop
+                const shouldOpen = window.innerWidth >= 1024;
+                Alpine.store('sidebar', { open: shouldOpen });
+            }
+        });
+    </script>
+
     <div class="flex h-screen overflow-hidden">
+        <!-- Mobile Menu Button - Always visible on mobile when sidebar is closed -->
+        <div x-show="!sidebarOpen" class="fixed top-4 left-4 z-50 lg:hidden">
+            <button @click="toggleSidebar()"
+                class="p-2 bg-white rounded-lg shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-200">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
         <!-- Sidebar Overlay -->
-        <div x-show="sidebarOpen" @click="sidebarOpen = false"
-            class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"></div>
+        <div x-show="sidebarOpen" @click="toggleSidebar()" class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden">
+        </div>
 
         <!-- Sidebar -->
         <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-20'"
@@ -66,7 +117,7 @@
                 <div class="flex items-center space-x-2">
                     <span class="font-bold text-lg text-gray-800" x-show="sidebarOpen">Super Admin</span>
                 </div>
-                <button @click="sidebarOpen = !sidebarOpen" class="p-1 rounded-md hover:bg-gray-100 focus:outline-none">
+                <button @click="toggleSidebar()" class="p-1 rounded-md hover:bg-gray-100 focus:outline-none">
                     <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -119,7 +170,8 @@
                         </div>
                         <div x-show="sidebarOpen" class="ml-3">
                             <p class="text-sm font-medium text-gray-800 truncate">
-                                {{ auth()->user()->name ?? 'Super Admin' }}</p>
+                                {{ auth()->user()->name ?? 'Super Admin' }}
+                            </p>
                             <p class="text-xs text-gray-500 truncate">{{ auth()->user()->email ??
                                 'superadmin@example.com' }}</p>
                         </div>
@@ -147,78 +199,55 @@
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Top Header -->
-            {{-- <header class="bg-white shadow-sm">
-                <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <button @click="sidebarOpen = !sidebarOpen"
-                            class="p-1 rounded-md text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 lg:inline-block">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 6h16M4 12h16M4 18h16"></path>
-                            </svg>
+            <!-- Top Header with Mobile Menu Button Alternative -->
+            <header class="bg-white shadow-sm lg:hidden">
+                <div class="px-4 py-3 flex items-center justify-between">
+                    <button @click="toggleSidebar()" x-show="!sidebarOpen"
+                        class="p-2 rounded-md text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+
+                    <h1 class="text-lg font-semibold text-gray-900">Super Admin</h1>
+
+                    <!-- Mobile Profile -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open"
+                            class="flex items-center p-1 rounded-full hover:bg-gray-100 transition-colors">
+                            <div
+                                class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                                {{ substr(auth()->user()->name ?? 'SA', 0, 1) }}
+                            </div>
                         </button>
 
-                        <!-- Breadcrumb -->
-                        <nav class="flex items-center space-x-2 text-sm text-gray-500">
-                            <span class="font-medium text-gray-900">Super Admin</span>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span>Dashboard</span>
-                        </nav>
-                    </div>
-
-                    <div class="flex items-center space-x-4">
-                        <!-- Notifications -->
-                        <button class="relative p-2 rounded-md text-gray-500 hover:bg-gray-100 focus:outline-none">
-                            <i class="fas fa-bell text-sm"></i>
-                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                        </button>
-
-                        <!-- Profile Dropdown -->
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                                <div
-                                    class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                                    {{ substr(auth()->user()->name ?? 'SA', 0, 1) }}
-                                </div>
-                                <div class="text-left hidden md:block">
-                                    <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name ?? 'Super
-                                        Admin' }}</p>
-                                    <p class="text-xs text-gray-500">Super Admin</p>
-                                </div>
-                                <i class="fas fa-chevron-down text-xs text-gray-400" :class="{ 'rotate-180': open }"
-                                    style="transition: transform 0.2s"></i>
-                            </button>
-
-                            <div x-show="open" @click.away="open = false"
-                                x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 scale-95"
-                                x-transition:enter-end="opacity-100 scale-100"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-100 scale-100"
-                                x-transition:leave-end="opacity-0 scale-95"
-                                class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                                <div class="px-4 py-3 border-b border-gray-100">
-                                    <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name ?? 'Super
-                                        Admin' }}</p>
-                                    <p class="text-xs text-gray-500">{{ auth()->user()->email ??
-                                        'superadmin@example.com' }}</p>
-                                </div>
-                                <div class="border-t border-gray-100 mt-2 pt-2">
-                                    <a href="{{ route('logout') }}"
-                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-                                        @csrf
-                                    </form>
-                                </div>
+                        <div x-show="open" @click.away="open = false"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name ?? 'Super Admin' }}
+                                </p>
+                                <p class="text-xs text-gray-500">{{ auth()->user()->email ?? 'superadmin@example.com' }}
+                                </p>
+                            </div>
+                            <div class="pt-2">
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                        Logout
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
-            </header> --}}
+            </header>
 
             <!-- Page Content -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto">

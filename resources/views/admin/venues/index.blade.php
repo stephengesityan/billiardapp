@@ -4,15 +4,18 @@
     <div class="p-6">
         <!-- Header -->
         <div class="mb-6">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <!-- Judul -->
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Kelola Venue</h1>
                     <p class="text-gray-600 mt-1">Kelola informasi venue Anda</p>
                 </div>
-                <div class="flex space-x-3">
-                    <!-- Venue Status Toggle -->
+
+                <!-- Aksi -->
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <!-- Status Venue -->
                     <div class="flex items-center space-x-3">
-                        <span class="text-sm font-medium text-gray-700">Status Venue:</span>
+                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Status Venue:</span>
                         <div class="relative">
                             <button id="statusToggle"
                                 class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 {{ $venue->status === 'open' ? 'bg-green-600' : 'bg-red-600' }}"
@@ -28,9 +31,10 @@
                         </span>
                     </div>
 
+                    <!-- Tombol Edit -->
                     <a href="{{ route('admin.venue.edit') }}"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24"
+                        class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition duration-300 w-full sm:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -53,31 +57,6 @@
                 {{ session('error') }}
             </div>
         @endif
-
-        <!-- Venue Status Alert -->
-        {{-- @if($venue->status === 'close')
-        <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-red-800">Venue Sedang Tutup</h3>
-                    <div class="mt-2 text-sm text-red-700">
-                        <p><strong>Alasan:</strong> {{ $venue->close_reason }}</p>
-                        @if($venue->reopen_date)
-                        <p><strong>Akan buka kembali pada:</strong> {{ $venue->reopen_date->format('d M Y') }}</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif --}}
 
         <!-- Venue Information Card -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -200,312 +179,249 @@
             </div>
         </div>
 
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <!-- Total Tables -->
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none"
+        <!-- Close Venue Modal -->
+        <div id="closeVenueModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <div class="flex items-center">
+                        <div
+                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                            <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                             </svg>
                         </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Total Meja</p>
-                        <p class="text-2xl font-semibold text-gray-900">{{ $venue->tables->count() }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Available Tables -->
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                    <div class="mt-2 text-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Tutup Venue</h3>
+                        <div class="mt-4 text-left">
+                            <form id="closeVenueForm">
+                                <div class="mb-4">
+                                    <label for="closeReason" class="block text-sm font-medium text-gray-700 mb-2">Alasan
+                                        Penutupan *</label>
+                                    <textarea id="closeReason" name="close_reason" rows="3"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Masukkan alasan penutupan venue..." required></textarea>
+                                    <div id="closeReasonError" class="text-red-500 text-sm mt-1 hidden"></div>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="reopenDate" class="block text-sm font-medium text-gray-700 mb-2">Tanggal
+                                        Buka
+                                        Kembali *</label>
+                                    <input type="date" id="reopenDate" name="reopen_date"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        min="{{ date('Y-m-d', strtotime('+1 day')) }}" required>
+                                    <div id="reopenDateError" class="text-red-500 text-sm mt-1 hidden"></div>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Meja Tersedia</p>
-                        <p class="text-2xl font-semibold text-gray-900">
-                            {{ $venue->tables->where('status', 'available')->count() }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Occupied Tables -->
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Meja Terpakai</p>
-                        <p class="text-2xl font-semibold text-gray-900">
-                            {{ $venue->tables->where('status', 'occupied')->count() }}
-                        </p>
+                    <div class="flex justify-end space-x-3 mt-4">
+                        <button type="button" onclick="closeModal()"
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                            Batal
+                        </button>
+                        <button type="button" onclick="confirmCloseVenue()"
+                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                            Tutup Venue
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Close Venue Modal -->
-    <div id="closeVenueModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <div class="flex items-center">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                    </div>
-                </div>
-                <div class="mt-2 text-center">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">Tutup Venue</h3>
-                    <div class="mt-4 text-left">
-                        <form id="closeVenueForm">
-                            <div class="mb-4">
-                                <label for="closeReason" class="block text-sm font-medium text-gray-700 mb-2">Alasan
-                                    Penutupan *</label>
-                                <textarea id="closeReason" name="close_reason" rows="3"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Masukkan alasan penutupan venue..." required></textarea>
-                                <div id="closeReasonError" class="text-red-500 text-sm mt-1 hidden"></div>
-                            </div>
-                            <div class="mb-4">
-                                <label for="reopenDate" class="block text-sm font-medium text-gray-700 mb-2">Tanggal Buka
-                                    Kembali *</label>
-                                <input type="date" id="reopenDate" name="reopen_date"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    min="{{ date('Y-m-d', strtotime('+1 day')) }}" required>
-                                <div id="reopenDateError" class="text-red-500 text-sm mt-1 hidden"></div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <div class="flex justify-end space-x-3 mt-4">
-                    <button type="button" onclick="closeModal()"
-                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
-                        Batal
-                    </button>
-                    <button type="button" onclick="confirmCloseVenue()"
-                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                        Tutup Venue
-                    </button>
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-4 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span class="text-gray-700">Memproses...</span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white p-4 rounded-lg">
-            <div class="flex items-center space-x-3">
-                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span class="text-gray-700">Memproses...</span>
-            </div>
-        </div>
-    </div>
+        <script>
+            let currentVenueStatus = '{{ $venue->status }}';
 
-    <script>
-        let currentVenueStatus = '{{ $venue->status }}';
-
-        function toggleVenueStatus() {
-            if (currentVenueStatus === 'open') {
-                // Show close venue modal
-                document.getElementById('closeVenueModal').classList.remove('hidden');
-            } else {
-                // Open venue directly
-                confirmToggleStatus();
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('closeVenueModal').classList.add('hidden');
-            // Clear form
-            document.getElementById('closeVenueForm').reset();
-            clearErrors();
-        }
-
-        function clearErrors() {
-            document.getElementById('closeReasonError').classList.add('hidden');
-            document.getElementById('reopenDateError').classList.add('hidden');
-        }
-
-        function confirmCloseVenue() {
-            const closeReason = document.getElementById('closeReason').value.trim();
-            const reopenDate = document.getElementById('reopenDate').value;
-
-            // Clear previous errors
-            clearErrors();
-
-            // Validate form
-            let hasError = false;
-
-            if (!closeReason) {
-                document.getElementById('closeReasonError').textContent = 'Alasan penutupan harus diisi.';
-                document.getElementById('closeReasonError').classList.remove('hidden');
-                hasError = true;
-            }
-
-            if (!reopenDate) {
-                document.getElementById('reopenDateError').textContent = 'Tanggal buka kembali harus diisi.';
-                document.getElementById('reopenDateError').classList.remove('hidden');
-                hasError = true;
-            } else {
-                const today = new Date();
-                const selectedDate = new Date(reopenDate);
-                if (selectedDate <= today) {
-                    document.getElementById('reopenDateError').textContent = 'Tanggal buka kembali harus setelah hari ini.';
-                    document.getElementById('reopenDateError').classList.remove('hidden');
-                    hasError = true;
+            function toggleVenueStatus() {
+                if (currentVenueStatus === 'open') {
+                    // Show close venue modal
+                    document.getElementById('closeVenueModal').classList.remove('hidden');
+                } else {
+                    // Open venue directly
+                    confirmToggleStatus();
                 }
             }
 
-            if (hasError) {
-                return;
+            function closeModal() {
+                document.getElementById('closeVenueModal').classList.add('hidden');
+                // Clear form
+                document.getElementById('closeVenueForm').reset();
+                clearErrors();
             }
 
-            // Close modal and proceed with toggle
-            closeModal();
-            confirmToggleStatus({
-                close_reason: closeReason,
-                reopen_date: reopenDate
-            });
-        }
+            function clearErrors() {
+                document.getElementById('closeReasonError').classList.add('hidden');
+                document.getElementById('reopenDateError').classList.add('hidden');
+            }
 
-        function confirmToggleStatus(data = {}) {
-            // Show loading spinner
-            document.getElementById('loadingSpinner').classList.remove('hidden');
+            function confirmCloseVenue() {
+                const closeReason = document.getElementById('closeReason').value.trim();
+                const reopenDate = document.getElementById('reopenDate').value;
 
-            // Prepare request data
-            const requestData = {
-                _token: '{{ csrf_token() }}',
-                ...data
-            };
+                // Clear previous errors
+                clearErrors();
 
-            fetch('{{ route("admin.venue.toggle-status") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify(requestData)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Hide loading spinner
-                    document.getElementById('loadingSpinner').classList.add('hidden');
+                // Validate form
+                let hasError = false;
 
-                    if (data.success) {
-                        // Update UI
-                        updateVenueStatusUI(data.venue);
+                if (!closeReason) {
+                    document.getElementById('closeReasonError').textContent = 'Alasan penutupan harus diisi.';
+                    document.getElementById('closeReasonError').classList.remove('hidden');
+                    hasError = true;
+                }
 
-                        // Show success message
-                        showAlert(data.message, 'success');
-
-                        // Update current status
-                        currentVenueStatus = data.status;
-
-                        // Reload page after 2 seconds to refresh all data
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 2000);
-                    } else {
-                        if (data.errors) {
-                            // Handle validation errors
-                            let errorMessage = 'Terjadi kesalahan validasi:\n';
-                            Object.values(data.errors).forEach(error => {
-                                errorMessage += '- ' + error[0] + '\n';
-                            });
-                            showAlert(errorMessage, 'error');
-                        } else {
-                            showAlert(data.error || 'Terjadi kesalahan yang tidak diketahui', 'error');
-                        }
+                if (!reopenDate) {
+                    document.getElementById('reopenDateError').textContent = 'Tanggal buka kembali harus diisi.';
+                    document.getElementById('reopenDateError').classList.remove('hidden');
+                    hasError = true;
+                } else {
+                    const today = new Date();
+                    const selectedDate = new Date(reopenDate);
+                    if (selectedDate <= today) {
+                        document.getElementById('reopenDateError').textContent = 'Tanggal buka kembali harus setelah hari ini.';
+                        document.getElementById('reopenDateError').classList.remove('hidden');
+                        hasError = true;
                     }
-                })
-                .catch(error => {
-                    // Hide loading spinner
-                    document.getElementById('loadingSpinner').classList.add('hidden');
+                }
 
-                    console.error('Error:', error);
-                    showAlert('Venue ditutup sementara!', 'error');
+                if (hasError) {
+                    return;
+                }
 
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
+                // Close modal and proceed with toggle
+                closeModal();
+                confirmToggleStatus({
+                    close_reason: closeReason,
+                    reopen_date: reopenDate
                 });
-        }
-
-        function updateVenueStatusUI(venue) {
-            const toggle = document.getElementById('statusToggle');
-            const statusText = document.getElementById('statusText');
-            const toggleButton = toggle.querySelector('span:last-child');
-
-            if (venue.status === 'open') {
-                toggle.classList.remove('bg-red-600');
-                toggle.classList.add('bg-green-600');
-                toggleButton.classList.remove('translate-x-1');
-                toggleButton.classList.add('translate-x-6');
-                statusText.textContent = 'Buka';
-                statusText.classList.remove('text-red-600');
-                statusText.classList.add('text-green-600');
-            } else {
-                toggle.classList.remove('bg-green-600');
-                toggle.classList.add('bg-red-600');
-                toggleButton.classList.remove('translate-x-6');
-                toggleButton.classList.add('translate-x-1');
-                statusText.textContent = 'Tutup';
-                statusText.classList.remove('text-green-600');
-                statusText.classList.add('text-red-600');
             }
-        }
 
-        function showAlert(message, type) {
-            // Remove existing alerts
-            const existingAlerts = document.querySelectorAll('.alert-message');
-            existingAlerts.forEach(alert => alert.remove());
+            function confirmToggleStatus(data = {}) {
+                // Show loading spinner
+                document.getElementById('loadingSpinner').classList.remove('hidden');
 
-            // Create new alert
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert-message mb-6 px-4 py-3 rounded-lg ${type === 'success' ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'
-                }`;
-            alertDiv.textContent = message;
+                // Prepare request data
+                const requestData = {
+                    _token: '{{ csrf_token() }}',
+                    ...data
+                };
 
-            // Insert alert after header
-            const header = document.querySelector('.mb-6');
-            header.parentNode.insertBefore(alertDiv, header.nextSibling);
+                fetch('{{ route("admin.venue.toggle-status") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loading spinner
+                        document.getElementById('loadingSpinner').classList.add('hidden');
 
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 5000);
-        }
+                        if (data.success) {
+                            // Update UI
+                            updateVenueStatusUI(data.venue);
 
-        // Set minimum date for reopen date input
-        document.addEventListener('DOMContentLoaded', function () {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const minDate = tomorrow.toISOString().split('T')[0];
-            document.getElementById('reopenDate').setAttribute('min', minDate);
-        });
-    </script>
+                            // Show success message
+                            showAlert(data.message, 'success');
+
+                            // Update current status
+                            currentVenueStatus = data.status;
+
+                            // Reload page after 2 seconds to refresh all data
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 2000);
+                        } else {
+                            if (data.errors) {
+                                // Handle validation errors
+                                let errorMessage = 'Terjadi kesalahan validasi:\n';
+                                Object.values(data.errors).forEach(error => {
+                                    errorMessage += '- ' + error[0] + '\n';
+                                });
+                                showAlert(errorMessage, 'error');
+                            } else {
+                                showAlert(data.error || 'Terjadi kesalahan yang tidak diketahui', 'error');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        // Hide loading spinner
+                        document.getElementById('loadingSpinner').classList.add('hidden');
+
+                        console.error('Error:', error);
+                        showAlert('Venue ditutup sementara!', 'error');
+
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    });
+            }
+
+            function updateVenueStatusUI(venue) {
+                const toggle = document.getElementById('statusToggle');
+                const statusText = document.getElementById('statusText');
+                const toggleButton = toggle.querySelector('span:last-child');
+
+                if (venue.status === 'open') {
+                    toggle.classList.remove('bg-red-600');
+                    toggle.classList.add('bg-green-600');
+                    toggleButton.classList.remove('translate-x-1');
+                    toggleButton.classList.add('translate-x-6');
+                    statusText.textContent = 'Buka';
+                    statusText.classList.remove('text-red-600');
+                    statusText.classList.add('text-green-600');
+                } else {
+                    toggle.classList.remove('bg-green-600');
+                    toggle.classList.add('bg-red-600');
+                    toggleButton.classList.remove('translate-x-6');
+                    toggleButton.classList.add('translate-x-1');
+                    statusText.textContent = 'Tutup';
+                    statusText.classList.remove('text-green-600');
+                    statusText.classList.add('text-red-600');
+                }
+            }
+
+            function showAlert(message, type) {
+                // Remove existing alerts
+                const existingAlerts = document.querySelectorAll('.alert-message');
+                existingAlerts.forEach(alert => alert.remove());
+
+                // Create new alert
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert-message mb-6 px-4 py-3 rounded-lg ${type === 'success' ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'
+                    }`;
+                alertDiv.textContent = message;
+
+                // Insert alert after header
+                const header = document.querySelector('.mb-6');
+                header.parentNode.insertBefore(alertDiv, header.nextSibling);
+
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+            }
+
+            // Set minimum date for reopen date input
+            document.addEventListener('DOMContentLoaded', function () {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const minDate = tomorrow.toISOString().split('T')[0];
+                document.getElementById('reopenDate').setAttribute('min', minDate);
+            });
+        </script>
 @endsection

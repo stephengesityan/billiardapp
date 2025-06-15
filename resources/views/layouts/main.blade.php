@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Document</title>
+    <title>Cari Meja</title>
     @vite('resources/css/app.css')
     {{-- Font | Google Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -108,10 +108,22 @@
                             class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Riwayat Booking
                         </a>
-                        <a href="{{ route('account.settings') }}"
-                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            Pengaturan Akun
-                        </a>
+                         @if (Auth::user()->role === 'user')
+                                    <a href="{{ route('account.settings') }}"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        Pengaturan Akun
+                                    </a>
+                                @elseif (Auth::user()->role === 'admin')
+                                    <a href="{{ url('/admin') }}"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        Halaman Admin
+                                    </a>
+                                @elseif (Auth::user()->role === 'superadmin')
+                                    <a href="{{ url('/superadmin') }}"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        Halaman Superadmin
+                                    </a>
+                                @endif
                         @if (Auth::user()->email_verified_at === null)
                             <a href="{{ route('verification.notice') }}"
                                 class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -157,7 +169,7 @@
 
                         <!-- Error message for login errors -->
                         @if(session('login_error') || ($errors->any() && old('email') && !old('name')))
-                            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+                           <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
                                 @if(session('login_error'))
                                     <p>{{ session('login_error') }}</p>
                                     @if(str_contains(session('login_error'), 'belum diverifikasi'))

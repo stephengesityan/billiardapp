@@ -3,10 +3,10 @@
 @section('content')
     <div class="p-6 bg-gray-50">
         <!-- Header dengan Action Button -->
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <h1 class="text-3xl font-bold text-gray-800">Kelola Meja</h1>
             <a href="{{ route('admin.tables.create') }}"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-300">
+                class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center transition-colors duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
                         d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
@@ -15,6 +15,7 @@
                 Tambah Meja Baru
             </a>
         </div>
+
 
         <!-- Flash Message -->
         @if(session('success'))
@@ -38,16 +39,16 @@
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama meja..."
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div class="md:w-1/4">
+                {{-- <div class="md:w-1/4">
                     <select name="status"
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Semua Status</option>
-                        <option value="Available" {{ request('status') == 'Available' ? 'selected' : '' }}>Available</option>
-                        <option value="Booked" {{ request('status') == 'Booked' ? 'selected' : '' }}>Booked</option>
-                        <option value="Unavailable" {{ request('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable
+                        <option value="Available" {{ request('status')=='Available' ? 'selected' : '' }}>Available</option>
+                        <option value="Booked" {{ request('status')=='Booked' ? 'selected' : '' }}>Booked</option>
+                        <option value="Unavailable" {{ request('status')=='Unavailable' ? 'selected' : '' }}>Unavailable
                         </option>
                     </select>
-                </div>
+                </div> --}}
                 <div class="flex space-x-2">
                     <button type="submit"
                         class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">

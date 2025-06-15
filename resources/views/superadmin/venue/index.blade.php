@@ -28,7 +28,7 @@
         @endif
 
         <!-- Filter and Search -->
-        <div class="bg-white rounded-lg shadow mb-6 p-4">
+        {{-- <div class="bg-white rounded-lg shadow mb-6 p-4">
             <form action="{{ route('superadmin.venue.index') }}" method="GET">
                 <div class="flex flex-col md:flex-row gap-4">
                     <div class="flex-grow">
@@ -41,18 +41,18 @@
                                 class="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                                 placeholder="Cari nama venue atau lokasi">
                         </div>
-                    </div>
-                    <div>
+                    </div> --}}
+                    {{-- <div>
                         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                         <select id="status" name="status"
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500">
                             <option value="">Semua Status</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif</option>
-                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Tidak Aktif
+                            <option value="open" {{ request('status')=='open' ? 'selected' : '' }}>Open</option>
+                            <option value="close" {{ request('status')=='close' ? 'selected' : '' }}>Close
                             </option>
                         </select>
-                    </div>
-                    <div class="self-end">
+                    </div> --}}
+                    {{-- <div class="self-end">
                         <button type="submit"
                             class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm">
                             Filter
@@ -64,7 +64,7 @@
                     </div>
                 </div>
             </form>
-        </div>
+        </div> --}}
 
         <!-- Venue Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -100,10 +100,10 @@
                             onerror="this.src='{{ asset('images/venue-placeholder.jpg') }}'; this.onerror=null;">
 
                         <div class="absolute top-3 right-3 flex gap-2">
-                            <a href="{{ route('superadmin.venue.edit', $venue->id) }}"
+                            {{-- <a href="{{ route('superadmin.venue.edit', $venue->id) }}"
                                 class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
                                 <i class="fas fa-edit"></i>
-                            </a>
+                            </a> --}}
                             <button type="button" onclick="confirmDelete({{ $venue->id }})"
                                 class="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200">
                                 <i class="fas fa-trash-alt"></i>
@@ -112,13 +112,17 @@
                     </div>
                     <div class="p-5">
                         <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $venue->name }}</h3>
-                        <div class="flex items-center mb-2">
+                        {{-- <div class="flex items-center mb-2">
                             <i class="fas fa-map-marker-alt text-gray-500 mr-2"></i>
                             <span class="text-gray-600 truncate" title="{{ $venue->address }}">{{ $venue->address }}</span>
-                        </div>
-                        <div class="flex items-center mb-2">
-                            <i class="fas fa-phone text-gray-500 mr-2"></i>
-                            <span class="text-gray-600">{{ $venue->phone }}</span>
+                        </div> --}}
+                        <div class="flex items-center mb-4">
+                            <i
+                                class="fas fa-circle {{ $venue->status == 'open' ? 'text-green-500' : 'text-red-500' }} mr-2"></i>
+                            <span
+                                class="text-sm font-medium {{ $venue->status == 'open' ? 'text-green-700' : 'text-red-700' }}">
+                                {{ $venue->status == 'open' ? 'Open' : 'Close' }}
+                            </span>
                         </div>
                         <div class="flex items-center mb-2">
                             <i class="fas fa-clock text-gray-500 mr-2"></i>
@@ -126,25 +130,21 @@
                                 {{ $venue->open_time ?? '00:00' }} - {{ $venue->close_time ?? '23:59' }}
                             </span>
                         </div>
-                        <div class="flex items-center mb-4">
-                            <i
-                                class="fas fa-circle {{ $venue->status == 'active' ? 'text-green-500' : 'text-red-500' }} mr-2"></i>
-                            <span
-                                class="text-sm font-medium {{ $venue->status == 'active' ? 'text-green-700' : 'text-red-700' }}">
-                                {{ $venue->status == 'active' ? 'Aktif' : 'Tidak Aktif' }}
-                            </span>
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-phone text-gray-500 mr-2"></i>
+                            <span class="text-gray-600">{{ $venue->phone }}</span>
                         </div>
 
-                        @if($venue->description)
-                            <div class="mb-4">
-                                <p class="text-gray-600 text-sm line-clamp-2">{{ Str::limit($venue->description, 100) }}</p>
-                            </div>
-                        @endif
+                        {{-- @if($venue->description)
+                        <div class="mb-4">
+                            <p class="text-gray-600 text-sm line-clamp-2">{{ Str::limit($venue->description, 100) }}</p>
+                        </div>
+                        @endif --}}
 
                         <div class="border-t pt-4">
                             <div class="flex justify-between items-center">
                                 <div class="text-sm text-gray-500">
-                                    <span class="font-medium">{{ $venue->created_at->format('d M Y') }}</span>
+                                    Dibuat: <span class="font-medium">{{ $venue->created_at->format('d M Y') }}</span>
                                 </div>
                                 <a href="{{ route('superadmin.venue.edit', $venue->id) }}"
                                     class="text-green-600 hover:text-green-800 flex items-center text-sm transition-colors duration-200">

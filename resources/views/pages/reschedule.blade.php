@@ -56,7 +56,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Tanggal:</label>
                 <input type="date" x-model="selectedDate" class="w-full border p-2 rounded-lg" 
-                       :min="today" @change="dateChanged">
+                       :min="today" @change="dateChanged" disabled>
             </div>
             
             <div>

@@ -3,19 +3,22 @@
 @section('content')
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800 mb-4 md:mb-0">
-                <i class="fas fa-calendar-check mr-2"></i>Daftar Booking
-            </h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-4 md:mb-0">
+        <i class="fas fa-calendar-check mr-2"></i>Daftar Booking
+    </h1>
 
-            <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-                <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali
-                </a>
-                {{-- <a href="{{ route('admin.bookings.export') }}" class="btn btn-success">
-                    <i class="fas fa-file-excel mr-1"></i> Export Excel
-                </a> --}}
-            </div>
-        </div>
+    <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+        <a href="/" 
+   class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow transition duration-300 w-full md:w-auto text-center">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+            d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+            clip-rule="evenodd" />
+    </svg>
+    Buat Booking
+</a>
+    </div>
+</div>
 
         <!-- Search and Filter Card -->
         <div class="bg-white rounded-lg shadow-md p-4 mb-6">

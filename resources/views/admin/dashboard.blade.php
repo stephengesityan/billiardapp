@@ -4,16 +4,17 @@
     <div class="bg-gray-50 min-h-screen">
         <div class="p-6">
             <!-- Header and Welcome -->
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-800">Dashboard {{ $venue->name }}</h1>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Dashboard {{ $venue->name }}</h1>
                     <p class="text-gray-600 mt-1">Selamat datang, {{ auth()->user()->name }}!</p>
                 </div>
-                <div class="text-right">
-                    <p class="text-sm text-gray-500">{{ now()->format('l, d F Y') }}</p>
-                    <p class="text-2xl font-semibold text-gray-800">{{ now()->format('H:i') }}</p>
+                <div class="text-left sm:text-right">
+                    <p class="text-sm text-gray-500">{{ now()->translatedFormat('l, d F Y') }}</p>
+                    <p class="text-xl sm:text-2xl font-semibold text-gray-800">{{ now()->translatedFormat('H:i') }}</p>
                 </div>
             </div>
+
 
             <!-- Stats Cards - Row 1: Revenue and Booking Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -53,8 +54,8 @@
                         </div>
                     </div>
                     <div class="flex mt-2 space-x-4">
-                        <p class="text-xs text-gray-500">Pending: <span
-                                class="font-semibold text-amber-500">{{ $pendingBookings }}</span></p>
+                        {{-- <p class="text-xs text-gray-500">Pending: <span class="font-semibold text-amber-500">{{
+                                $pendingBookings }}</span></p> --}}
                         <p class="text-xs text-gray-500">Paid: <span
                                 class="font-semibold text-green-500">{{ $paidBookings }}</span></p>
                     </div>
@@ -158,9 +159,9 @@
                                                     <span class="mr-2">{{ $booking->table->name }}</span>
                                                     <span
                                                         class="text-xs px-2 py-0.5 rounded-full {{ 
-                                                                                                                                                                                                $booking->status === 'paid' ? 'bg-green-100 text-green-800' :
+                                                                                                                                                                                                                                                            $booking->status === 'paid' ? 'bg-green-100 text-green-800' :
                                 ($booking->status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800') 
-                                                                                                                                                                                            }}">
+                                                                                                                                                                                                                                                        }}">
                                                         {{ ucfirst($booking->status) }}
                                                     </span>
                                                 </div>

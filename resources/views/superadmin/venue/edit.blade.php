@@ -7,7 +7,7 @@
                 style="backdrop-filter: blur(20px); background-color: rgba(255, 255, 255, 0.8);">
                 <div class="p-6 sm:p-10">
                     <h2 class="text-center text-4xl font-semibold text-gray-900 mb-8">
-                        {{ __('Edit Venue') }}
+                        {{ __('Detail Venue') }}
                     </h2>
 
                     @if ($errors->any())
@@ -41,7 +41,7 @@
                                 <input type="text" id="name" name="name" value="{{ old('name', $venue->name) }}" required
                                     autocomplete="name" autofocus
                                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
-                                    placeholder="Masukkan nama venue">
+                                    placeholder="Masukkan nama venue" disabled>
                             </div>
 
                             {{-- Nomor Telepon --}}
@@ -51,7 +51,7 @@
                                 </label>
                                 <input type="tel" id="phone" name="phone" value="{{ old('phone', $venue->phone) }}" required
                                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
-                                    placeholder="Masukkan nomor telepon">
+                                    placeholder="Masukkan nomor telepon" disabled>
                             </div>
                         </div>
 
@@ -62,7 +62,8 @@
                             </label>
                             <textarea id="address" name="address" required rows="3"
                                 class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
-                                placeholder="Masukkan alamat lengkap venue">{{ old('address', $venue->address) }}</textarea>
+                                placeholder="Masukkan alamat lengkap venue"
+                                disabled>{{ old('address', $venue->address) }}</textarea>
                         </div>
 
                         {{-- Deskripsi --}}
@@ -72,7 +73,8 @@
                             </label>
                             <textarea id="description" name="description" rows="4" required
                                 class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
-                                placeholder="Berikan deskripsi venue">{{ old('description', $venue->description) }}</textarea>
+                                placeholder="Berikan deskripsi venue"
+                                disabled>{{ old('description', $venue->description) }}</textarea>
                         </div>
 
                         {{-- Jam Operasional --}}
@@ -83,6 +85,7 @@
                                 </label>
                                 <input type="time" id="open_time" name="open_time"
                                     value="{{ old('open_time', date('H:i', strtotime($venue->open_time))) }}" required
+                                    disabled
                                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out">
                             </div>
                             <div>
@@ -91,6 +94,7 @@
                                 </label>
                                 <input type="time" id="close_time" name="close_time"
                                     value="{{ old('close_time', date('H:i', strtotime($venue->close_time))) }}" required
+                                    disabled
                                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out">
                             </div>
                         </div>
@@ -100,13 +104,13 @@
                             <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
                                 {{ __('Status') }}
                             </label>
-                            <select id="status" name="status" required
+                            <select id="status" name="status" required disabled
                                 class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out">
-                                <option value="active" {{ old('status', $venue->status) == 'active' ? 'selected' : '' }}>
-                                    {{ __('Aktif') }}
+                                <option value="open" {{ old('status', $venue->status) == 'open' ? 'selected' : '' }}>
+                                    {{ __('Open') }}
                                 </option>
-                                <option value="inactive" {{ old('status', $venue->status) == 'inactive' ? 'selected' : '' }}>
-                                    {{ __('Tidak Aktif') }}
+                                <option value="close" {{ old('status', $venue->status) == 'close' ? 'selected' : '' }}>
+                                    {{ __('Close') }}
                                 </option>
                             </select>
                         </div>
@@ -126,8 +130,8 @@
                                 </div>
                             @endif
 
-                            <div x-ref="dropzone" @dragover.prevent="dragover = true" @dragleave.prevent="dragover = false"
-                                @drop.prevent="handleDrop($event)"
+                            {{-- <div x-ref="dropzone" @dragover.prevent="dragover = true"
+                                @dragleave.prevent="dragover = false" @drop.prevent="handleDrop($event)"
                                 class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg transition duration-300 ease-in-out"
                                 :class="dragover ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-500'">
                                 <div class="space-y-1 text-center">
@@ -154,19 +158,19 @@
                                     </p>
                                     <p x-text="fileName" class="text-sm text-gray-600 mt-2"></p>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
 
                         {{-- Tombol Aksi --}}
                         <div class="flex justify-end space-x-4 pt-6">
                             <a href="{{ route('superadmin.venue.index') }}"
                                 class="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition duration-300 ease-in-out">
-                                {{ __('Batal') }}
+                                {{ __('Kembali') }}
                             </a>
-                            <button type="submit"
+                            {{-- <button type="submit"
                                 class="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 ease-in-out">
                                 {{ __('Perbarui') }}
-                            </button>
+                            </button> --}}
                         </div>
                     </form>
                 </div>
