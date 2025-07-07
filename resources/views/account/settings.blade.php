@@ -63,7 +63,7 @@
                                         <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}"
                                             required
                                             class="focus:ring-blue-500 focus:border-blue-500 flex-1 block w-full rounded-none rounded-r-md border-gray-300 p-1"
-                                            placeholder="Masukkan email">
+                                            placeholder="Masukkan email" readonly>
                                     </div>
                                     @error('email')
                                         <div class="text-red-500 mt-1 text-sm"><i

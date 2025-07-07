@@ -62,8 +62,8 @@
                                 {{-- Venue sedang buka - tampilkan jam operasional --}}
                                 <p class="text-sm text-gray-600 mt-1">
                                     <i class="fa-regular fa-clock text-green-500"></i>
-                                    Buka: {{ date('H:i', strtotime($venue['open_time'])) }} -
-                                    {{ date('H:i', strtotime($venue['close_time'])) }}
+                                    Buka: {{ date('H:i A', strtotime($venue['open_time'])) }} -
+                                    {{ date('H:i A', strtotime($venue['close_time'])) }}
                                 </p>
                             @else
                                 {{-- Venue sedang tutup - tampilkan informasi penutupan --}}

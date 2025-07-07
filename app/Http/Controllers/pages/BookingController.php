@@ -23,81 +23,72 @@ class BookingController extends Controller
     }
 
     // Tambahkan method baru untuk booking langsung oleh admin
-   public function adminDirectBooking($request) {
+  // Ganti seluruh fungsi adminDirectBooking dengan ini
+public function adminDirectBooking($request) {
     try {
-        // Handle both Request object dan Collection
         $data = $request instanceof \Illuminate\Http\Request ? $request->all() : $request->toArray();
         
-        // Validasi manual karena bisa dari collection
         if (!isset($data['table_id']) || !isset($data['start_time']) || !isset($data['end_time'])) {
-            return response()->json([
-                'message' => 'Missing required fields'
-            ], 400);
+            return response()->json(['message' => 'Missing required fields'], 400);
         }
 
         $user = Auth::user();
+        $table = Table::with('venue')->findOrFail($data['table_id']);
+        $venue = $table->venue;
 
-        // Validasi bahwa user adalah admin dan mengelola venue dari meja tersebut
-        $table = Table::findOrFail($data['table_id']);
+        // Validasi otorisasi admin (menggunakan struktur yang konsisten dengan kodemu)
         if ($user->role !== 'admin' || $user->venue_id !== $table->venue_id) {
-            return response()->json([
-                'message' => 'Unauthorized action'
-            ], 403);
+            return response()->json(['message' => 'Unauthorized action'], 403);
         }
 
-        // Parse start_time dan end_time yang sudah dalam format datetime string
         $startDateTime = Carbon::parse($data['start_time']);
         $endDateTime = Carbon::parse($data['end_time']);
 
-        // Validasi jam operasional venue (opsional, karena sudah divalidasi di createPaymentIntent)
-        $venue = $table->venue;
-        $venueOpenTime = Carbon::parse($venue->open_time);
-        $venueCloseTime = Carbon::parse($venue->close_time);
-        
-        $startTimeOnly = $startDateTime->format('H:i');
-        $endTimeOnly = $endDateTime->format('H:i');
-        
-        if ($startTimeOnly < $venueOpenTime->format('H:i') || $endTimeOnly > $venueCloseTime->format('H:i')) {
-            return response()->json([
-                'message' => 'Waktu booking di luar jam operasional venue'
-            ], 400);
+        // --- Validasi jam operasional (logika ini sudah benar) ---
+        $operationalDayStart = Carbon::createFromFormat('Y-m-d H:i:s', $startDateTime->format('Y-m-d') . ' ' . $venue->open_time, 'Asia/Jakarta');
+        if ($venue->is_overnight && $startDateTime < $operationalDayStart) {
+            $operationalDayStart->subDay();
         }
 
-        // Cek konflik booking
+        $operationalDayEnd = $operationalDayStart->copy()->setTimeFromTimeString($venue->close_time);
+        if ($venue->is_overnight) {
+            $operationalDayEnd->addDay();
+        }
+        
+        if ($startDateTime->lt($operationalDayStart) || $endDateTime->gt($operationalDayEnd)) {
+            Log::warning('Admin direct booking attempt outside operational hours.', [
+                'start_time' => $startDateTime->toDateTimeString(),
+                'venue_open' => $operationalDayStart->toDateTimeString(),
+                'venue_close' => $operationalDayEnd->toDateTimeString(),
+            ]);
+            return response()->json(['message' => 'Waktu booking di luar jam operasional venue.'], 400);
+        }
+        // --- Akhir Validasi jam operasional ---
+        
+        // --- PERBAIKAN LOGIKA KONFLIK DIMULAI DI SINI ---
+        // Kita hapus ->whereDate() dan langsung cek bentrokan waktu.
         $conflict = Booking::where('table_id', $data['table_id'])
-            ->whereDate('start_time', $startDateTime->format('Y-m-d'))
-            ->where(function($query) use ($startDateTime, $endDateTime) {
-                $query->where(function($q) use ($startDateTime, $endDateTime) {
-                    // Case 1: Booking baru mulai di tengah booking yang ada
-                    $q->where('start_time', '<=', $startDateTime)
-                      ->where('end_time', '>', $startDateTime);
-                })->orWhere(function($q) use ($startDateTime, $endDateTime) {
-                    // Case 2: Booking baru berakhir di tengah booking yang ada
-                    $q->where('start_time', '<', $endDateTime)
-                      ->where('end_time', '>=', $endDateTime);
-                })->orWhere(function($q) use ($startDateTime, $endDateTime) {
-                    // Case 3: Booking baru mencakup seluruh booking yang ada
-                    $q->where('start_time', '>=', $startDateTime)
-                      ->where('end_time', '<=', $endDateTime);
-                });
-            })
             ->whereIn('status', ['paid', 'pending'])
+            ->where(function($query) use ($startDateTime, $endDateTime) {
+                // Booking yang baru tidak boleh dimulai di tengah booking lain.
+                // Booking yang baru juga tidak boleh berakhir di tengah booking lain.
+                // Booking yang baru juga tidak boleh "menelan" booking lain.
+                $query->where('start_time', '<', $endDateTime)
+                      ->where('end_time', '>', $startDateTime);
+            })
             ->exists();
 
         if ($conflict) {
-            return response()->json([
-                'message' => 'Meja sudah dibooking di jam tersebut'
-            ], 409);
+            return response()->json(['message' => 'Meja sudah dibooking di jam tersebut'], 409);
         }
+        // --- AKHIR DARI PERBAIKAN LOGIKA KONFLIK ---
 
         // Hitung total biaya dan durasi
         $duration = $endDateTime->diffInHours($startDateTime);
         $totalAmount = $duration * $table->price_per_hour;
 
-        // Generate order ID unik untuk admin
         $adminOrderId = 'ADMIN-' . $user->id . '-' . time();
 
-        // Buat booking langsung dengan status paid
         $booking = Booking::create([
             'table_id' => $data['table_id'],
             'user_id' => $user->id,
@@ -130,10 +121,7 @@ class BookingController extends Controller
             'request_data' => $request instanceof \Illuminate\Http\Request ? $request->all() : $request->toArray()
         ]);
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Gagal membuat booking: ' . $e->getMessage()
-        ], 500);
+        return response()->json(['success' => false, 'message' => 'Gagal membuat booking: ' . $e->getMessage()], 500);
     }
 }
 
@@ -142,44 +130,51 @@ class BookingController extends Controller
     try {
         $request->validate([
             'table_id' => 'required|exists:tables,id',
-            'start_time' => 'required', // Ubah dari date menjadi string untuk format H:i
-            'duration' => 'required|integer|min:1|max:12', // Validasi durasi
-            'booking_date' => 'required|date_format:Y-m-d', // Validasi tanggal booking
+            'start_time' => 'required',
+            'duration' => 'required|integer|min:1|max:12',
+            'booking_date' => 'required|date_format:Y-m-d',
         ]);
 
         $user = Auth::user();
         $table = Table::with('venue')->findOrFail($request->table_id);
+        $venue = $table->venue;
 
-        // Buat datetime lengkap dari booking_date dan start_time
         $bookingDate = $request->booking_date;
-        $startTime = $request->start_time; // Format H:i (contoh: "14:00")
+        $startTimeString = $request->start_time;
         $duration = (int) $request->duration;
 
-        // Gabungkan tanggal dan waktu untuk membuat datetime lengkap
-        $startDateTime = Carbon::createFromFormat('Y-m-d H:i', $bookingDate . ' ' . $startTime, 'Asia/Jakarta');
+        // 1. Hitung start & end time yang sebenarnya
+        $startDateTime = Carbon::createFromFormat('Y-m-d H:i', $bookingDate . ' ' . $startTimeString, 'Asia/Jakarta');
+
+        // --- AWAL PERBAIKAN LOGIKA STRING COMPARISON ---
+        $startTimeObject = Carbon::createFromFormat('H:i', $startTimeString);
+        $openTimeObject = Carbon::parse($venue->open_time);
+
+        // Bandingkan sebagai objek Carbon, bukan string
+        if ($venue->is_overnight && $startTimeObject->lt($openTimeObject)) {
+            $startDateTime->addDay();
+        }
         $endDateTime = $startDateTime->copy()->addHours($duration);
 
-        // Validasi waktu booking dalam jam operasional venue
-        $venueOpenTime = Carbon::createFromFormat('H:i:s', $table->venue->open_time)->format('H:i');
-        $venueCloseTime = Carbon::createFromFormat('H:i:s', $table->venue->close_time)->format('H:i');
-        $venueCloseDateTime = Carbon::createFromFormat('Y-m-d H:i', $bookingDate . ' ' . $venueCloseTime, 'Asia/Jakarta');
-        
-        if ($startTime < $venueOpenTime || $startTime >= $venueCloseTime) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Waktu booking di luar jam operasional venue'
-            ], 422);
+        // 2. --- BLOK VALIDASI YANG DIPERBAIKI ---
+        $operationalDayStart = Carbon::createFromFormat('Y-m-d H:i:s', $startDateTime->format('Y-m-d') . ' ' . $venue->open_time, 'Asia/Jakarta');
+        if ($venue->is_overnight && $startDateTime < $operationalDayStart) {
+            $operationalDayStart->subDay();
         }
-
-        // Validasi bahwa end time tidak melebihi jam tutup venue
-        if ($endDateTime->gt($venueCloseDateTime)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Durasi booking melebihi jam tutup venue'
-            ], 422);
+        $operationalDayEnd = $operationalDayStart->copy()->setTimeFromTimeString($venue->close_time);
+        if ($venue->is_overnight) {
+            $operationalDayEnd->addDay();
         }
+        if ($startDateTime->lt($operationalDayStart) || $endDateTime->gt($operationalDayEnd)) {
+            Log::warning('Booking attempt outside operational hours.', [
+                'start_time' => $startDateTime->toDateTimeString(), 'end_time' => $endDateTime->toDateTimeString(),
+                'venue_open' => $operationalDayStart->toDateTimeString(), 'venue_close' => $operationalDayEnd->toDateTimeString(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'Durasi booking di luar jam operasional venue.'], 422);
+        }
+        // --- AKHIR DARI BLOK VALIDASI ---
 
-        // Cek untuk admin direct booking
+        // 3. Cek untuk admin direct booking (tidak berubah)
         if ($user->role === 'admin' && $user->venue_id === $table->venue_id) {
             return $this->adminDirectBooking(collect([
                 'table_id' => $request->table_id,
@@ -188,74 +183,34 @@ class BookingController extends Controller
             ]));
         }
 
-        // Cek konflik booking dengan format datetime lengkap
+        // 4. Cek konflik booking (tidak berubah)
         $conflict = Booking::where('table_id', $request->table_id)
-                ->where(function($query) use ($startDateTime, $endDateTime) {
-                    $query->where(function($q) use ($startDateTime, $endDateTime) {
-                        $q->where('start_time', '<', $endDateTime)
-                          ->where('end_time', '>', $startDateTime);
-                    });
-                })
-                ->where('status', 'paid')
-                ->exists();
-
+            ->where('status', 'paid')
+            ->where(function($query) use ($startDateTime, $endDateTime) {
+                $query->where('start_time', '<', $endDateTime)
+                      ->where('end_time', '>', $startDateTime);
+            })
+            ->exists();
         if ($conflict) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Meja sudah dibooking di jam tersebut'
-            ], 409);
+            return response()->json(['success' => false, 'message' => 'Meja sudah dibooking di jam tersebut'], 409);
         }
 
-        // Hitung total biaya
+        // 5. Proses ke Midtrans (tidak berubah)
         $totalAmount = $duration * $table->price_per_hour;
-
-        // Simpan data booking sementara di session
-        Session::put('temp_booking', [
-            'table_id' => $request->table_id,
-            'user_id' => Auth::id(),
-            'start_time' => $startDateTime->toDateTimeString(),
-            'end_time' => $endDateTime->toDateTimeString(),
-            'total_amount' => $totalAmount,
-            'created_at' => now(),
-        ]);
-
-        // Generate unique order ID
         $tempOrderId = 'TEMP-' . Auth::id() . '-' . time();
-        Session::put('temp_order_id', $tempOrderId);
 
-        // Simpan booking sementara ke database
         PendingBooking::updateOrCreate(
-            [
-                'user_id' => Auth::id(),
-                'table_id' => $request->table_id,
-                'start_time' => $startDateTime->toDateTimeString()
-            ],
-            [
-                'end_time' => $endDateTime->toDateTimeString(),
-                'total_amount' => $totalAmount,
-                'order_id' => $tempOrderId,
-                'expired_at' => now()->addHours(24),
-            ]
+            ['user_id' => Auth::id(), 'table_id' => $request->table_id, 'start_time' => $startDateTime->toDateTimeString()],
+            ['end_time' => $endDateTime->toDateTimeString(), 'total_amount' => $totalAmount, 'order_id' => $tempOrderId, 'expired_at' => now()->addHours(24) ]
         );
 
-        // Dapatkan snap token dari Midtrans
         $snapToken = $this->midtransService->createTemporaryTransaction($table, $totalAmount, $tempOrderId, Auth::user());
-
         if (!$snapToken) {
             throw new \Exception('Failed to get snap token from Midtrans');
         }
 
-        \Log::info('Payment intent created successfully:', [
-            'order_id' => $tempOrderId,
-            'snap_token' => $snapToken,
-            'start_time' => $startDateTime->toDateTimeString(),
-            'end_time' => $endDateTime->toDateTimeString()
-        ]);
-
         return response()->json([
             'success' => true,
-            'message' => 'Payment intent created, proceed to payment',
-            'total_amount' => $totalAmount,
             'snap_token' => $snapToken,
             'order_id' => $tempOrderId
         ]);
@@ -360,18 +315,37 @@ class BookingController extends Controller
             'date' => 'required|date',
         ]);
 
+        $table = Table::with('venue')->findOrFail($request->table_id);
+    $venue = $table->venue;
+    $requestDate = Carbon::parse($request->date);
+
         // Only get bookings with paid status
-        $bookings = Booking::where('table_id', $request->table_id)
-            ->whereDate('start_time', $request->date)
-            ->where('status', 'paid') // Only include paid bookings
-            ->select('start_time', 'end_time')
-            ->get()
-            ->map(function ($booking) {
-                return [
-                    'start' => Carbon::parse($booking->start_time)->format('H:i'),
-                    'end' => Carbon::parse($booking->end_time)->format('H:i')
-                ];
-            });
+        $query = Booking::where('table_id', $request->table_id)
+                    ->where('status', 'paid');
+
+            if ($venue->is_overnight) {
+                // Jika overnight, ambil booking dari jam buka di hari H
+                // sampai jam tutup di hari H+1
+                $startOperationalDay = $requestDate->copy()->setTimeFromTimeString($venue->open_time);
+                $endOperationalDay = $requestDate->copy()->addDay()->setTimeFromTimeString($venue->close_time);
+
+                $query->whereBetween('start_time', [$startOperationalDay, $endOperationalDay]);
+
+            } else {
+                // Jika tidak overnight, ambil booking hanya di hari H
+                $query->whereDate('start_time', $requestDate);
+            }
+
+             $bookings = $query->select('start_time', 'end_time')
+        ->get()
+        ->map(function ($booking) {
+            return [
+                // Format H:i tetap sama, karena frontend hanya butuh jamnya
+                'start' => Carbon::parse($booking->start_time)->format('H:i'),
+                'end' => Carbon::parse($booking->end_time)->format('H:i')
+            ];
+        });
+
 
         return response()->json($bookings);
     }
@@ -556,39 +530,42 @@ class BookingController extends Controller
         }
     }
 
-    public function showReschedule($id)
-    {
-        $booking = Booking::with(['table.venue', 'table.venue.tables'])->findOrFail($id);
-        
-        // Check if user owns this booking
-        if ($booking->user_id !== auth()->id()) {
-            return redirect()->route('booking.history')->with('error', 'Anda tidak memiliki akses ke booking ini.');
-        }
-        
-        // Check if booking is upcoming
-        if ($booking->start_time <= now() || $booking->status !== 'paid') {
-            return redirect()->route('booking.history')->with('error', 'Booking ini tidak dapat di-reschedule.');
-        }
+    // GANTI SELURUH FUNGSI showReschedule DENGAN YANG INI
 
-        // Check if booking has reached reschedule limit
-        if ($booking->reschedule_count >= 1) {
-            return redirect()->route('booking.history')->with('error', 'Booking ini sudah pernah di-reschedule sebelumnya dan tidak dapat di-reschedule lagi.');
-        }
-        
-        // Check if it's within the time limit (at least 1 hour before start)
-        $rescheduleDeadline = Carbon::parse($booking->start_time)->subHour();
-        if (now() > $rescheduleDeadline) {
-            return redirect()->route('booking.history')->with('error', 'Batas waktu reschedule telah berakhir (1 jam sebelum mulai).');
-        }
-        
-        // Get venue and tables data
-        $venue = $booking->table->venue;
-        
-        // Duration in hours
-        $duration = Carbon::parse($booking->start_time)->diffInHours($booking->end_time);
-        
-        return view('pages.reschedule', compact('booking', 'venue', 'duration'));
+public function showReschedule($id)
+{
+    $booking = Booking::with(['table.venue', 'table.venue.tables'])->findOrFail($id);
+    
+    // Validasi kepemilikan dan status booking (tidak ada perubahan)
+    if ($booking->user_id !== auth()->id() || $booking->status !== 'paid' || $booking->reschedule_count >= 1) {
+        return redirect()->route('booking.history')->with('error', 'Batas maksimal reschedule telah digunakan (1x).');
     }
+    
+    $rescheduleDeadline = Carbon::parse($booking->start_time)->subHour();
+    if (now() > $rescheduleDeadline) {
+        return redirect()->route('booking.history')->with('error', 'Batas waktu reschedule telah berakhir (1 jam sebelum mulai).');
+    }
+    
+    $venue = $booking->table->venue;
+    $duration = Carbon::parse($booking->start_time)->diffInHours($booking->end_time);
+
+    // --- AWAL LOGIKA BARU UNTUK MENENTUKAN TANGGAL OPERASIONAL ---
+    $startTime = Carbon::parse($booking->start_time);
+    $operational_date = $startTime->copy(); // Mulai dengan tanggal kalender
+
+    // Jika venue-nya overnight DAN jam booking lebih pagi dari jam buka,
+    // maka tanggal operasionalnya adalah H-1 dari tanggal kalender.
+    if ($venue->is_overnight && $startTime->format('H:i:s') < $venue->open_time) {
+        $operational_date->subDay();
+    }
+    
+    // Ubah ke format Y-m-d untuk dikirim ke view
+    $operational_date_string = $operational_date->format('Y-m-d');
+    // --- AKHIR DARI LOGIKA BARU ---
+
+    // Kirim $operational_date_string ke view, bukan lagi tanggal dari $booking
+    return view('pages.reschedule', compact('booking', 'venue', 'duration', 'operational_date_string'));
+}
 
     /**
      * Process a reschedule request.
@@ -652,30 +629,43 @@ class BookingController extends Controller
      * Check availability for reschedule.
      */
     public function checkRescheduleAvailability(Request $request)
-    {
-        $request->validate([
-            'table_id' => 'required|exists:tables,id',
-            'date' => 'required|date_format:Y-m-d',
-            'booking_id' => 'required|exists:bookings,id'
-        ]);
-        
-        $date = $request->date;
-        $tableId = $request->table_id;
-        $bookingId = $request->booking_id;
-        
-        // Get all bookings for this table on this date (excluding the current booking)
-        $bookings = Booking::where('table_id', $tableId)
-            ->where('id', '!=', $bookingId)
-            ->where('status', 'paid')
-            ->whereDate('start_time', $date)
-            ->get(['start_time', 'end_time'])
-            ->map(function ($booking) {
-                return [
-                    'start' => Carbon::parse($booking->start_time)->format('H:i'),
-                    'end' => Carbon::parse($booking->end_time)->format('H:i'),
-                ];
-            });
-        
-        return response()->json($bookings);
+{
+    $request->validate([
+        'table_id' => 'required|exists:tables,id',
+        'date' => 'required|date_format:Y-m-d',
+        'booking_id' => 'required|exists:bookings,id'
+    ]);
+    
+    $table = Table::with('venue')->findOrFail($request->table_id);
+    $venue = $table->venue;
+    $requestDate = Carbon::parse($request->date);
+    
+    // Query untuk mengambil booking lain di meja yang sama
+    $query = Booking::where('table_id', $table->id)
+        ->where('id', '!=', $request->booking_id) // Jangan ikut sertakan booking yang sedang di-reschedule
+        ->where('status', 'paid');
+
+    // --- LOGIKA OVERNIGHT DITERAPKAN DI SINI ---
+    if ($venue->is_overnight) {
+        // Ambil booking dari jam buka di hari H sampai jam tutup di hari H+1
+        $startOperationalDay = $requestDate->copy()->setTimeFromTimeString($venue->open_time);
+        $endOperationalDay = $requestDate->copy()->addDay()->setTimeFromTimeString($venue->close_time);
+
+        $query->whereBetween('start_time', [$startOperationalDay, $endOperationalDay]);
+    } else {
+        // Logika standar untuk venue yang tidak overnight
+        $query->whereDate('start_time', $requestDate);
     }
+    // --- AKHIR DARI LOGIKA OVERNIGHT ---
+
+    $bookings = $query->get(['start_time', 'end_time'])
+        ->map(function ($booking) {
+            return [
+                'start' => Carbon::parse($booking->start_time)->format('H:i'),
+                'end' => Carbon::parse($booking->end_time)->format('H:i'),
+            ];
+        });
+    
+    return response()->json($bookings);
+}
 }

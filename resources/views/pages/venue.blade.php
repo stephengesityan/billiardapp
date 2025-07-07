@@ -26,8 +26,8 @@
                 {{-- Venue sedang buka - tampilkan jam operasional --}}
                 <p class="text-sm text-gray-600 mt-1">
                     <i class="fa-regular fa-clock text-green-500"></i>
-                    Jam Operasional: {{ date('H:i', strtotime($venue['open_time'])) }} -
-                    {{ date('H:i', strtotime($venue['close_time'])) }}
+                    Jam Operasional: {{ date('H:i A', strtotime($venue['open_time'])) }} -
+                    {{ date('H:i A', strtotime($venue['close_time'])) }}
                 </p>
             @else
                 {{-- Venue sedang tutup - tampilkan informasi penutupan --}}
@@ -116,7 +116,13 @@
                 </div>
             </div>
             @foreach ($venue['tables'] as $table)
-                <div x-data="booking(@json(auth()->check()), '{{ $table['id'] }}', {{ $openHour }}, {{ $closeHour }})"
+                <div x-data="booking(
+                    @json(auth()->check()), 
+                    '{{ $table['id'] }}', 
+                    {{ date('G', strtotime($venue['open_time'])) }},  // Jam buka (format 24 jam tanpa leading zero)
+                    {{ date('G', strtotime($venue['close_time'])) }}, // Jam tutup
+                    {{ $venue->is_overnight ? 'true' : 'false' }}     // Tambahkan flag is_overnight
+                )"
                     class="border rounded-lg shadow-md p-4 mb-4">
                     <div class="flex items-center justify-between cursor-pointer"
                         @click="open = !open; if(open) checkBookedSchedules()">
@@ -564,30 +570,63 @@
             }));
 
             // Regular booking component (updated with dynamic hours)
-            Alpine.data('booking', (isLoggedIn, tableId, openHour, closeHour) => ({
-                isLoggedIn,
-                tableId,
-                openHour, // Dynamic open hour from venue
-                closeHour, // Dynamic close hour from venue
-                open: false,
-                selectedTime: '',
-                selectedDuration: '',
-                isLoading: false,
-                bookedSchedules: [],
+             Alpine.data('booking', (isLoggedIn, tableId, openHour, closeHour, isOvernight) => ({
+            isLoggedIn,
+            tableId,
+            openHour,
+            closeHour,
+            isOvernight,
+            open: false,
+            selectedTime: '',
+            selectedDuration: '',
+            isLoading: false,
+            bookedSchedules: [],
 
                 // Updated method to use dynamic hours from venue
                 getAvailableHours() {
-                    let hours = [];
-                    for (let i = this.openHour; i <= this.closeHour; i++) {
+                let hours = [];
+                const currentJakartaHour = getJakartaDate().getHours();
+
+                if (this.isOvernight) {
+                    // Jam dari waktu buka sampai tengah malam (23)
+                    for (let i = this.openHour; i < 24; i++) {
+                        // Hanya tampilkan jam yang akan datang
+                        if (i >= currentJakartaHour) {
+                            hours.push(i.toString().padStart(2, '0'));
+                        }
+                    }
+                    // Jam dari tengah malam (00) sampai waktu tutup
+                    for (let i = 0; i <= this.closeHour; i++) {
                         hours.push(i.toString().padStart(2, '0'));
                     }
-                    return hours;
-                },
+                } else {
+                    // Logika standar untuk venue yang tidak overnight
+                    for (let i = this.openHour; i <= this.closeHour; i++) {
+                        // Hanya tampilkan jam yang akan datang
+                        if (i >= currentJakartaHour) {
+                            hours.push(i.toString().padStart(2, '0'));
+                        }
+                    }
+                }
+                return hours;
+            },
 
                 isTimeBooked(time) {
                     const timeFormatted = time.padStart(5, '0');
                     return this.bookedSchedules.some(schedule => {
-                        return timeFormatted >= schedule.start && timeFormatted < schedule.end;
+                        const isOvernightBooking = schedule.end < schedule.start;
+
+                        if (isOvernightBooking) {
+                            // Untuk booking overnight (misal 23:00 - 01:00)
+                            // Slot dianggap booked jika:
+                            // 1. Lebih besar atau sama dengan jam mulai (misal 23:00)
+                            // ATAU
+                            // 2. Lebih kecil dari jam selesai (misal 00:00)
+                            return (timeFormatted >= schedule.start || timeFormatted < schedule.end);
+                        } else {
+                            // Untuk booking normal
+                            return (timeFormatted >= schedule.start && timeFormatted < schedule.end);
+                        }
                     });
                 },
 
@@ -622,6 +661,10 @@
                     const selectedDateTime = new Date(now);
                     const [selectedHour, selectedMinute] = selectedTime.split(':').map(Number);
                     selectedDateTime.setHours(selectedHour, selectedMinute, 0, 0);
+
+                    if (this.isOvernight && selectedHour < this.openHour) {
+                    selectedDateTime.setDate(selectedDateTime.getDate() + 1);
+                    }
 
                     // Uncomment this for production to prevent booking past times
                     if (selectedDateTime <= now) {

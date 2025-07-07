@@ -10,6 +10,12 @@ class Venue extends Model
 {
     use HasFactory;
 
+    public function getIsOvernightAttribute()
+    {
+        // Jika jam tutup lebih kecil dari jam buka, berarti melewati tengah malam
+        return $this->close_time && $this->open_time && $this->close_time < $this->open_time;
+    }
+
     protected $fillable = [
         'name',
         'address',
@@ -28,6 +34,15 @@ class Venue extends Model
     protected $dates = [
         'reopen_date',
     ];
+
+    // --- TAMBAHKAN PROPERTI INI ---
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['is_overnight'];
+    // --- AKHIR DARI PENAMBAHAN ---
 
     public function tables()
     {
